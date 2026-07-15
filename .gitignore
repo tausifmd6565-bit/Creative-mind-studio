@@ -2,6 +2,10 @@
 .env
 .env.*
 
+# Personal plans/tasks
+silentkillr-plan.md
+task_silentkillr.pdf
+
 # Python, Caches & Environments
 **/__pycache__/
 **/*.py[cod]
