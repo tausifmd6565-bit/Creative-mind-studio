@@ -4,7 +4,7 @@
  *
  * App.tsx — root component.
  *
- * Switches between eight top-level experiences:
+ * Switches between ten top-level experiences:
  *   1. Marketing landing page      (view = 'marketing')
  *   2. Auth / Onboarding flow      (view = 'auth')
  *   3. Application shell           (view = 'app')
@@ -13,6 +13,8 @@
  *   6. Strategy War Room           (view = 'strategy')
  *   7. Virality Twin Workspace     (view = 'virality-twin')
  *   8. Research Lab                (view = 'research-lab')
+ *   9. Script & Story Room         (view = 'script-room')
+ *  10. Asset Room                  (view = 'asset-room')
  *
  * Change DEFAULT_VIEW to start on a different screen during development.
  */
@@ -28,6 +30,8 @@ import { ProjectOverviewPage } from './app/dashboard/projects/projectId/overview
 import { StrategyWarRoomPage } from './app/dashboard/projects/projectId/strategy/StrategyWarRoomPage';
 import { ViralityTwinPage } from './app/dashboard/projects/projectId/virality-twin/ViralityTwinPage';
 import { ResearchLabPage } from './app/dashboard/projects/projectId/research/ResearchLabPage';
+import { ScriptRoomPage } from './app/dashboard/projects/projectId/script/ScriptRoomPage';
+import { AssetRoomPage } from './app/dashboard/projects/projectId/assets/AssetRoomPage';
 
 type AppView =
   | 'marketing'
@@ -37,10 +41,12 @@ type AppView =
   | 'project-overview'
   | 'strategy'
   | 'virality-twin'
-  | 'research-lab';
+  | 'research-lab'
+  | 'script-room'
+  | 'asset-room';
 
 // ← Change this to jump to a specific screen during development
-const DEFAULT_VIEW: AppView = 'research-lab';
+const DEFAULT_VIEW: AppView = 'asset-room';
 
 export default function App() {
   const [view, setView] = useState<AppView>(DEFAULT_VIEW);
@@ -113,6 +119,32 @@ export default function App() {
         <MainLayout>
           <ResearchLabPage
             onBack={() => setView('virality-twin')}
+            onContinue={() => setView('script-room')}
+          />
+        </MainLayout>
+      </LayoutProvider>
+    );
+  }
+
+  if (view === 'script-room') {
+    return (
+      <LayoutProvider>
+        <MainLayout>
+          <ScriptRoomPage
+            onBack={() => setView('research-lab')}
+            onContinue={() => setView('asset-room')}
+          />
+        </MainLayout>
+      </LayoutProvider>
+    );
+  }
+
+  if (view === 'asset-room') {
+    return (
+      <LayoutProvider>
+        <MainLayout>
+          <AssetRoomPage
+            onBack={() => setView('script-room')}
             onContinue={() => setView('app')}
           />
         </MainLayout>

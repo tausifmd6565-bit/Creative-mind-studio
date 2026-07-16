@@ -13,7 +13,7 @@ import { Plus } from 'lucide-react';
 import { useLayout } from '../../lib/useLayout';
 import { useDashboardData } from './hooks/useDashboardData';
 import { DashboardHeader } from './components/DashboardHeader';
-import { KpiCards } from './components/KpiCards';
+import { KpiCards } from './components/KPICards';
 import { ContinueWorking } from './components/ContinueWorking';
 import { ProductionPipeline } from './components/ProductionPipeline';
 import { ActivityFeed } from './components/ActivityFeed';

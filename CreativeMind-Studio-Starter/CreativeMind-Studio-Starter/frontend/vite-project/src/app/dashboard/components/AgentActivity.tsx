@@ -88,7 +88,7 @@ const AgentCardItem: React.FC<AgentCardItemProps> = ({ agent, index, currentMess
               color: agent.color,
             }}
           >
-            <Bot className="w-4.5 h-4.5" />
+            <Bot className="w-4 h-4" />
           </div>
           <span
             className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0B0B12] ${meta.dotClass}`}
@@ -111,7 +111,7 @@ const AgentCardItem: React.FC<AgentCardItemProps> = ({ agent, index, currentMess
             borderColor: isError ? '#EF444430' : isDone ? '#10B98130' : isActive ? `${agent.color}30` : 'rgba(255,255,255,0.07)',
           }}
         >
-          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dotClass.replace('animate-pulse', '')}`} />
+          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dotClass.split(' ').filter(c => c !== 'animate-pulse').join(' ')}`} />
           {meta.label}
         </div>
       </div>
