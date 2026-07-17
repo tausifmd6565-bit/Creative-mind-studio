@@ -4,7 +4,7 @@
  *
  * App.tsx — root component.
  *
- * Switches between twelve top-level experiences:
+ * Switches between thirteen top-level experiences:
  *   1. Marketing landing page      (view = 'marketing')
  *   2. Auth / Onboarding flow      (view = 'auth')
  *   3. Application shell           (view = 'app')
@@ -17,6 +17,7 @@
  *  10. Asset Room                  (view = 'asset-room')
  *  11. Video Editor Workspace      (view = 'editor')
  *  12. Review & Approval Room      (view = 'review')
+ *  13. Distribution Room           (view = 'distribution')
  *
  * Change DEFAULT_VIEW to start on a different screen during development.
  */
@@ -36,6 +37,8 @@ import { ScriptRoomPage } from './app/dashboard/projects/projectId/script/Script
 import { AssetRoomPage } from './app/dashboard/projects/projectId/assets/AssetRoomPage';
 import { VideoEditorWorkspace } from './app/dashboard/projects/projectId/editor/VideoEditorWorkspace';
 import { ReviewApprovalRoom } from './app/dashboard/projects/projectId/review/ReviewApprovalRoom';
+import { DistributionRoom } from './app/dashboard/projects/projectId/distribution/DistributionRoom';
+import { PerformanceWorkspace } from './app/dashboard/projects/projectId/analytics/PerformanceWorkspace';
 
 type AppView =
   | 'marketing'
@@ -49,10 +52,12 @@ type AppView =
   | 'script-room'
   | 'asset-room'
   | 'editor'
-  | 'review';
+  | 'review'
+  | 'distribution'
+  | 'performance';
 
 // ← Change this to jump to a specific screen during development
-const DEFAULT_VIEW: AppView = 'review';
+const DEFAULT_VIEW: AppView = 'performance';
 
 export default function App() {
   const [view, setView] = useState<AppView>(DEFAULT_VIEW);
@@ -176,6 +181,30 @@ export default function App() {
         <MainLayout>
           <ReviewApprovalRoom
             onBack={() => setView('editor')}
+          />
+        </MainLayout>
+      </LayoutProvider>
+    );
+  }
+
+  if (view === 'distribution') {
+    return (
+      <LayoutProvider>
+        <MainLayout>
+          <DistributionRoom
+            onBack={() => setView('review')}
+          />
+        </MainLayout>
+      </LayoutProvider>
+    );
+  }
+
+  if (view === 'performance') {
+    return (
+      <LayoutProvider>
+        <MainLayout>
+          <PerformanceWorkspace
+            onBack={() => setView('distribution')}
           />
         </MainLayout>
       </LayoutProvider>
