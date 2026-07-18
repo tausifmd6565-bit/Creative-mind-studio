@@ -21,7 +21,6 @@ import {
   XCircle,
   HelpCircle,
   AlertOctagon,
-  Minus,
   ChevronDown,
   Bot,
   Link2,

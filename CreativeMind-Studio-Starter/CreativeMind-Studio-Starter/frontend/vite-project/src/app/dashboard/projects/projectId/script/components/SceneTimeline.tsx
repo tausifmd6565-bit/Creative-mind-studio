@@ -16,7 +16,6 @@ import {
   Layers,
   Link2,
   Pencil,
-  Eye,
 } from 'lucide-react';
 import type { SceneCard, SceneApprovalStatus } from '../types';
 

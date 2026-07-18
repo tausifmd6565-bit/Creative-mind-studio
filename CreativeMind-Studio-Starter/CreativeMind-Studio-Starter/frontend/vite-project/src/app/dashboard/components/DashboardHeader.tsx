@@ -32,8 +32,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userName,
   workspaceName,
 }) => {
-  const greeting = useMemo(getGreeting, []);
-  const date = useMemo(formatDate, []);
+  const greeting = useMemo(() => getGreeting(), []);
+  const date = useMemo(() => formatDate(), []);
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">

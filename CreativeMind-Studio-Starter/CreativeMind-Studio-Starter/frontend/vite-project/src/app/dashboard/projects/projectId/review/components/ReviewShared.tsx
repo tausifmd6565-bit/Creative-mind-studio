@@ -9,7 +9,7 @@ import {
   ShieldCheck, ShieldAlert, ShieldOff, HelpCircle, Lock,
   Minus, Info, AlertOctagon
 } from 'lucide-react';
-import type { ReviewStatus, SeverityLevel, RiskRating, ApprovalStepState } from '../review/mockData';
+import type { ReviewStatus, SeverityLevel, RiskRating, ApprovalStepState } from '../mockData';
 
 // ─── Review Status Badge ──────────────────────────────────────────────────────
 

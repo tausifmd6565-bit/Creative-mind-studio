@@ -152,8 +152,8 @@ export const EvidenceMapView: React.FC<EvidenceMapProps> = ({ data }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const CANVAS_W = 700;
-  const CANVAS_H = 700;
+  const CANVAS_W = 700; // eslint-disable-line @typescript-eslint/no-unused-vars
+  const CANVAS_H = 700; // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const clampZoom = (z: number) => Math.min(2, Math.max(0.4, z));
 

@@ -23,8 +23,6 @@ import {
   Sparkles,
   ChevronRight,
   BarChart2,
-  User,
-  Bot,
 } from 'lucide-react';
 import type { BlockInspectorData, ClaimStatus, ScriptBlock } from '../types';
 
@@ -104,9 +102,6 @@ const EmptyState: React.FC = () => (
 // ─── Block meta overview ──────────────────────────────────────────────────────
 
 const BlockMeta: React.FC<{ block: ScriptBlock }> = ({ block }) => {
-  const writerInitials = block.comments[0]?.author.initials ?? 'NA';
-  const writerColor    = block.comments[0]?.author.color    ?? '#8B5CF6';
-  const writerIsAi     = block.comments[0]?.author.isAi     ?? true;
 
   return (
     <div className="grid grid-cols-2 gap-2">

@@ -3,14 +3,14 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Microscope, FileText, Edit3, Shield, Scale, Copyright,
   MonitorCheck, CheckCircle2, Lock, ChevronRight, AlertTriangle
 } from 'lucide-react';
 import type { ReviewCategory, CategoryId } from '../mockData';
 import {
-  ReviewProgressBar, RiskLabel, StepStatePill, ReviewerAvatar, SectionHeader
+  ReviewProgressBar, RiskLabel, StepStatePill, ReviewerAvatar
 } from './ReviewShared';
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {

@@ -5,7 +5,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  CheckCircle2, XCircle, Minus, AlertTriangle, ChevronDown, ChevronUp,
+  CheckCircle2, AlertTriangle, ChevronDown, ChevronUp,
+  Minus,
 } from 'lucide-react';
 import type { ComparisonMetric, MetricStatus } from '../types';
 

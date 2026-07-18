@@ -57,7 +57,7 @@ export type ViewMode = 'grid' | 'list' | 'board' | 'scene-linked' | 'rights-risk
 
 // ─── Aspect ratio ─────────────────────────────────────────────────────────────
 
-export type AspectRatio = '16:9' | '9:16' | '4:3' | '1:1' | '21:9' | 'varies';
+export type AspectRatio = '16:9' | '9:16' | '4:3' | '1:1' | '21:9' | '3:2' | '5:3' | 'varies';
 
 // ─── Upload status ────────────────────────────────────────────────────────────
 

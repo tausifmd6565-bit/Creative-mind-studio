@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Copy, FileText, FileDown, Code2, Package, Plug, CheckCircle2,
-  Slack, Notion, Rss,
+  MessageSquare, BookOpen, Rss,
 } from 'lucide-react';
 import { MASTER_CONTENT, PLATFORM_ADAPTATIONS } from '../mockData';
 import type { ExportFormat } from '../types';
@@ -73,8 +73,8 @@ interface IntegrationOption {
 }
 
 const INTEGRATIONS: IntegrationOption[] = [
-  { id: 'slack', label: 'Send to Slack', Icon: Slack, available: false },
-  { id: 'notion', label: 'Sync to Notion', Icon: Notion, available: false },
+  { id: 'slack', label: 'Send to Slack', Icon: MessageSquare, available: false },
+  { id: 'notion', label: 'Sync to Notion', Icon: BookOpen, available: false },
   { id: 'rss', label: 'Publish to RSS Feed', Icon: Rss, available: false },
   { id: 'webhook', label: 'Webhook Export', Icon: Plug, available: false },
 ];

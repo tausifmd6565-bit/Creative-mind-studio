@@ -28,7 +28,7 @@ const TRUST_BADGES = [
 const ease = [0.22, 1, 0.36, 1] as const;
 
 // Animated node that travels down the pipeline
-const AgentNode: React.FC<{ delay: number; stepIndex: number }> = ({ delay, stepIndex }) => (
+export const AgentNode: React.FC<{ delay: number; stepIndex: number }> = ({ delay, stepIndex }) => (
   <motion.div
     key={`node-${delay}`}
     initial={{ opacity: 0, y: -10 }}

@@ -5,7 +5,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Search, ArrowUpDown, ArrowUp, ArrowDown, Filter,
+  Search, ArrowUpDown, ArrowUp, ArrowDown,
   Film, Image, Music, Cpu, AlertTriangle
 } from 'lucide-react';
 import type { AuditRow } from '../mockData';
@@ -48,7 +48,6 @@ export const RightsAuditTable: React.FC = () => {
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [sortKey, setSortKey] = useState<SortKey>('riskRating');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
-  const [showFilters, setShowFilters] = useState(false);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -76,8 +75,8 @@ export const RightsAuditTable: React.FC = () => {
     }
 
     rows.sort((a, b) => {
-      let av: string | number | boolean = a[sortKey] as any;
-      let bv: string | number | boolean = b[sortKey] as any;
+      let av: string | number | boolean = a[sortKey] as string | number | boolean;
+      let bv: string | number | boolean = b[sortKey] as string | number | boolean;
 
       if (sortKey === 'riskRating') {
         av = RISK_ORDER[av as string] ?? 0;

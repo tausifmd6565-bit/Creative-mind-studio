@@ -5,8 +5,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, Download, FileText, FileJson, FilePdf, Film,
-  CheckCircle2, Clock, AlertCircle, Zap, FileCode2,
+  X, Download, FileText, FileJson, Film,
+  CheckCircle2, Clock, Zap, FileCode2,
   Lock
 } from 'lucide-react';
 import { PROJECT_META } from '../mockData';

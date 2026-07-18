@@ -5,7 +5,7 @@
  */
 
 import { FileText, Loader2, Send, Eye, Zap, CheckCircle2 } from 'lucide-react';
-import type { PublicationStatus, DiffType } from './types';
+import type { PublicationStatus, DiffType } from '../types';
 
 // ─── Status config ─────────────────────────────────────────────────────────
 
@@ -89,7 +89,7 @@ export const THUMB_LABELS: Record<string, string> = {
 
 // ─── Platform colors ──────────────────────────────────────────────────────────
 
-import type { PlatformId } from './types';
+import type { PlatformId } from '../types';
 
 export const PLATFORM_COLORS: Record<PlatformId, { bg: string; text: string }> = {
   youtube:          { bg: '#FF0000', text: '#ffffff' },

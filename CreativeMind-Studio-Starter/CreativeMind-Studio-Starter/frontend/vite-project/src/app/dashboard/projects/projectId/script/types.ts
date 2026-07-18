@@ -15,7 +15,7 @@ export type StoryStage =
   | 'resolution'
   | 'cta';
 
-export type SectionStatus = 'not-started' | 'in-progress' | 'draft' | 'review' | 'approved' | 'locked';
+export type SectionStatus = 'not-started' | 'in-progress' | 'draft' | 'review' | 'approved' | 'locked' | 'needs-revision';
 
 export interface StoryWriter {
   id: string;
@@ -51,7 +51,7 @@ export type BlockType =
   | 'citation'
   | 'editor-note';
 
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'locked' | 'needs-revision';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'locked' | 'needs-revision' | 'review';
 
 export type ClaimStatus = 'verified' | 'partially-supported' | 'contested' | 'unverified';
 

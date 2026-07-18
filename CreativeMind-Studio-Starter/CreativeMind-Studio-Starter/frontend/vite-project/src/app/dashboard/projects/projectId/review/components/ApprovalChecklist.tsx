@@ -8,8 +8,8 @@ import {
   CheckCircle2, XCircle, Clock, Loader2, Lock,
   AlertTriangle, ShieldOff, TrendingUp, ChevronDown, ChevronUp
 } from 'lucide-react';
-import type { ChecklistItem, ApprovalStepState } from '../mockData';
-import { APPROVAL_CHECKLIST, REVIEW_PROJECT, APPROVAL_FLOW_CONFIG } from '../mockData';
+import type { ChecklistItem } from '../mockData';
+import { APPROVAL_CHECKLIST, APPROVAL_FLOW_CONFIG } from '../mockData';
 import { ReviewProgressBar, StepStatePill } from './ReviewShared';
 
 const STATUS_ICONS: Record<string, React.ElementType> = {
@@ -247,7 +247,7 @@ const FlowConfig: React.FC = () => {
       <div className="rounded-xl border border-white/8 overflow-hidden">
         {entries
           .sort((a, b) => a[1].orderIndex - b[1].orderIndex)
-          .map(([id, cfg], idx) => {
+          .map(([id, cfg]) => {
             const color = stateColors[cfg.stepState] ?? '#94A3B8';
             return (
               <div

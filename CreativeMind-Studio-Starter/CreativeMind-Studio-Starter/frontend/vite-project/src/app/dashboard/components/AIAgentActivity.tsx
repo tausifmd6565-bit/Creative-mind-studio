@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Zap } from 'lucide-react';
-import type { AgentStatus } from '../hooks/useDashboardData';
+import type { AgentCard as AgentStatus } from '../hooks/useDashboardData';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -23,20 +23,24 @@ const ThinkingDots: React.FC<{ color: string }> = ({ color }) => (
   </div>
 );
 
-const STATUS_CONFIG = {
-  active: { dot: 'bg-emerald-500', label: 'Active', pulse: true },
-  thinking: { dot: 'bg-[#7C3AED]', label: 'Thinking', pulse: true },
-  idle: { dot: 'bg-slate-600', label: 'Idle', pulse: false },
-  waiting: { dot: 'bg-amber-500', label: 'Waiting', pulse: false },
-} as const;
+const STATUS_CONFIG: Record<string, { dot: string; label: string; pulse: boolean }> = {
+  working:  { dot: 'bg-emerald-500', label: 'Working',  pulse: true  },
+  thinking: { dot: 'bg-[#7C3AED]',   label: 'Thinking', pulse: true  },
+  done:     { dot: 'bg-slate-600',   label: 'Done',     pulse: false },
+  waiting:  { dot: 'bg-amber-500',   label: 'Waiting',  pulse: false },
+  error:    { dot: 'bg-rose-500',    label: 'Error',    pulse: false },
+};
+
+const FALLBACK_STATUS = { dot: 'bg-slate-600', label: 'Idle', pulse: false };
 
 const AgentCard: React.FC<{ agent: AgentStatus; index: number }> = ({ agent, index }) => {
   const [currentMessage, setCurrentMessage] = useState(agent.task);
-  const cfg = STATUS_CONFIG[agent.status];
+  const cfg = STATUS_CONFIG[agent.status] ?? FALLBACK_STATUS;
+  const isActive = agent.status === 'working' || agent.status === 'thinking';
 
   // Cycle task messages for active/thinking agents
   useEffect(() => {
-    if (agent.status === 'idle' || agent.status === 'waiting') return;
+    if (agent.status === 'waiting' || agent.status === 'done') return;
     const t = setInterval(() => {
       setCurrentMessage(agent.task);
     }, 3000);
@@ -50,13 +54,13 @@ const AgentCard: React.FC<{ agent: AgentStatus; index: number }> = ({ agent, ind
       transition={{ duration: 0.25, delay: index * 0.06, ease }}
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       className={`group relative rounded-2xl border p-4 overflow-hidden transition-all duration-200 ${
-        agent.status === 'active' || agent.status === 'thinking'
+        isActive
           ? 'border-white/[0.12] bg-[#10101A]/90'
           : 'border-white/[0.06] bg-[#10101A]/60'
       }`}
     >
       {/* Active glow */}
-      {(agent.status === 'active' || agent.status === 'thinking') && (
+      {isActive && (
         <div
           className="absolute inset-0 pointer-events-none rounded-2xl"
           style={{ boxShadow: `inset 0 0 0 1px ${agent.color}25` }}
@@ -64,7 +68,7 @@ const AgentCard: React.FC<{ agent: AgentStatus; index: number }> = ({ agent, ind
       )}
 
       {/* Top accent */}
-      {(agent.status === 'active' || agent.status === 'thinking') && (
+      {isActive && (
         <div
           className="absolute top-0 left-0 right-0 h-px"
           style={{ background: `linear-gradient(90deg, transparent, ${agent.color}60, transparent)` }}
@@ -106,9 +110,9 @@ const AgentCard: React.FC<{ agent: AgentStatus; index: number }> = ({ agent, ind
         <span
           className="flex-shrink-0 flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full border"
           style={{
-            color: agent.status === 'thinking' ? '#9D6CFF' : agent.status === 'active' ? '#10B981' : agent.status === 'waiting' ? '#F59E0B' : '#475569',
-            backgroundColor: agent.status === 'thinking' ? '#7C3AED15' : agent.status === 'active' ? '#10B98115' : agent.status === 'waiting' ? '#F59E0B15' : 'rgba(255,255,255,0.03)',
-            borderColor: agent.status === 'thinking' ? '#7C3AED30' : agent.status === 'active' ? '#10B98130' : agent.status === 'waiting' ? '#F59E0B30' : 'rgba(255,255,255,0.06)',
+            color: agent.status === 'thinking' ? '#9D6CFF' : agent.status === 'working' ? '#10B981' : agent.status === 'waiting' ? '#F59E0B' : '#475569',
+            backgroundColor: agent.status === 'thinking' ? '#7C3AED15' : agent.status === 'working' ? '#10B98115' : agent.status === 'waiting' ? '#F59E0B15' : 'rgba(255,255,255,0.03)',
+            borderColor: agent.status === 'thinking' ? '#7C3AED30' : agent.status === 'working' ? '#10B98130' : agent.status === 'waiting' ? '#F59E0B30' : 'rgba(255,255,255,0.06)',
           }}
         >
           <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} ${cfg.pulse ? 'animate-pulse' : ''}`} />
@@ -182,7 +186,7 @@ interface AIAgentActivityProps {
 
 export const AIAgentActivity: React.FC<AIAgentActivityProps> = ({ agents }) => {
   const activeCount = agents.filter(
-    (a) => a.status === 'active' || a.status === 'thinking'
+    (a) => a.status === 'working' || a.status === 'thinking'
   ).length;
 
   return (

@@ -48,7 +48,9 @@ const StatPill: React.FC<{
   color: string;
   delay?: number;
 }> = ({ icon, label, value, color, delay = 0 }) => {
-  const displayed = typeof value === 'number' ? useCountUp(value, delay) : value;
+  const numericValue = typeof value === 'number' ? value : 0;
+  const counted = useCountUp(numericValue, delay);
+  const displayed = typeof value === 'number' ? counted : value;
 
   return (
     <div className="flex flex-col items-center gap-2 p-3.5 rounded-[14px] border border-white/[0.07]

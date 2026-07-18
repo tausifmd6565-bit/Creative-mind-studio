@@ -16,8 +16,8 @@ import {
 import type { Scene } from '../mockData';
 import { TIMELINE_TRACKS, ANALYTICS_CURVE, PROJECT_META } from '../mockData';
 import {
-  EditingStatusBadge, AssetReadinessBadge, VisualTypeBadge,
-  WarningCount, EditorAvatar, PacingDot, PulseMarker
+  EditingStatusBadge, AssetReadinessBadge,
+  WarningCount, EditorAvatar, PulseMarker
 } from './EditorShared';
 
 interface TimelineBlueprintProps {
@@ -156,12 +156,15 @@ interface AnalyticsPanelProps {
   scenes: Scene[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry { dataKey: string; name: string; value: number; color: string; }
+interface CustomTooltipProps { active?: boolean; payload?: TooltipPayloadEntry[]; label?: number; }
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-[#151521] border border-white/10 rounded-lg p-2.5 text-xs shadow-xl">
-      <div className="text-[#94A3B8] mb-1 font-mono">{formatTimecode(label)}</div>
-      {payload.map((entry: any) => (
+      <div className="text-[#94A3B8] mb-1 font-mono">{formatTimecode(label ?? 0)}</div>
+      {payload.map((entry: TooltipPayloadEntry) => (
         <div key={entry.dataKey} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: entry.color }} />
           <span className="text-[#CBD5E1]">{entry.name}:</span>

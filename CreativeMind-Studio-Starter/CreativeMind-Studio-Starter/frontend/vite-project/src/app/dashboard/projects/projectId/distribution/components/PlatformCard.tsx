@@ -139,7 +139,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
                 {a.platformName}
               </span>
               {a.isLocked && (
-                <Lock className="w-3 h-3 text-amber-400 flex-shrink-0" title="Locked" />
+                <span title="Locked"><Lock className="w-3 h-3 text-amber-400 flex-shrink-0" /></span>
               )}
             </div>
             <StatusBadge status={a.status} size="sm" />

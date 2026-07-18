@@ -77,6 +77,7 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
 interface ConfidenceBarProps {
   score: number; // 0–100
   label?: string;
+  showLabel?: boolean;
   size?: 'sm' | 'md';
   animated?: boolean;
 }
@@ -84,6 +85,7 @@ interface ConfidenceBarProps {
 export const ConfidenceBar: React.FC<ConfidenceBarProps> = ({
   score,
   label,
+  showLabel = true,
   size = 'md',
   animated = true,
 }) => {
@@ -106,21 +108,21 @@ export const ConfidenceBar: React.FC<ConfidenceBarProps> = ({
           style={{ background: color }}
         />
       </div>
-      {label !== undefined ? (
+      {showLabel && label !== undefined ? (
         <span
           className="text-[10px] font-mono font-bold w-8 text-right flex-shrink-0"
           style={{ color }}
         >
           {label}
         </span>
-      ) : (
+      ) : showLabel ? (
         <span
           className="text-[10px] font-mono font-bold w-8 text-right flex-shrink-0"
           style={{ color }}
         >
           {score}%
         </span>
-      )}
+      ) : null}
     </div>
   );
 };

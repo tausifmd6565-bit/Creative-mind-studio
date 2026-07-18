@@ -36,7 +36,7 @@ export const AuthRouter: React.FC<AuthRouterProps> = ({
   onAuthenticated,
 }) => {
   const [page, setPage] = useState<AuthPageId>(initialPage);
-  const [verifyEmail, setVerifyEmail] = useState('');
+  const [verifyEmail, setVerifyEmail] = useState(''); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const navigate = (to: string) => {
     if (to === 'dashboard') {

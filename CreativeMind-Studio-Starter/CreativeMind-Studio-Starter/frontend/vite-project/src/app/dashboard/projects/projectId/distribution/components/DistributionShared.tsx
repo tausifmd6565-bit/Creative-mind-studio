@@ -18,10 +18,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  Youtube, Instagram, Linkedin, Twitter, Mail, Mic, FileText, Layout,
+  PlayCircle, Camera,
+  Mail, Mic, FileText, Layout,
   CheckCircle2, Loader2, Send, Eye, Zap,
 } from 'lucide-react';
-import type { PublicationStatus, PlatformId, DiffType } from './types';
+import type { PublicationStatus, PlatformId, DiffType } from '../types';
 import {
   STATUS_CONFIG,
   DIFF_CONFIG,
@@ -72,10 +73,9 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
 // ─── Platform Icon ─────────────────────────────────────────────────────────
 
 const PLATFORM_ICONS: Record<string, React.ElementType> = {
-  youtube: Youtube,
-  instagram: Instagram,
-  linkedin: Linkedin,
-  twitter: Twitter,
+  youtube: PlayCircle,
+  instagram: Camera,
+
   mail: Mail,
   mic: Mic,
   'file-text': FileText,

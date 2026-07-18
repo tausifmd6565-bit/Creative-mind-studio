@@ -24,7 +24,8 @@ interface ScenesBinProps {
 }
 
 const FILTER_OPTIONS = ['All', 'Approved', 'In Progress', 'Review', 'Blocked', 'Not Started'];
-const VISUAL_FILTERS = ['All Types', 'Talking Head', 'Documentary', 'Interview', 'B-roll Montage', 'Motion Graphics', 'Screen Recording'];
+const _VISUAL_FILTERS = ['All Types', 'Talking Head', 'Documentary', 'Interview', 'B-roll Montage', 'Motion Graphics', 'Screen Recording'];
+void _VISUAL_FILTERS;
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);

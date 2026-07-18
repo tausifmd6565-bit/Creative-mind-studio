@@ -29,7 +29,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1); // 1=forward, -1=back
-  const [data, setData] = useState<OnboardingData>({});
+  const [, setData] = useState<OnboardingData>({});
 
   const goNext = () => {
     setDirection(1);

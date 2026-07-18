@@ -5,13 +5,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Filter, CheckCircle2, XCircle, MessageSquare,
-  Link2, User, AlertTriangle, Clock, ChevronDown
+  Search, Filter, CheckCircle2, MessageSquare,
+  Link2, User, AlertTriangle, Clock
 } from 'lucide-react';
 import type { ReviewItem, CategoryId, ReviewStatus } from '../mockData';
 import {
-  ReviewStatusBadge, SeverityBadge, ReviewerAvatar,
-  QuickActionBtn, SectionHeader
+  ReviewStatusBadge, SeverityBadge, ReviewerAvatar
 } from './ReviewShared';
 
 interface ReviewQueueProps {

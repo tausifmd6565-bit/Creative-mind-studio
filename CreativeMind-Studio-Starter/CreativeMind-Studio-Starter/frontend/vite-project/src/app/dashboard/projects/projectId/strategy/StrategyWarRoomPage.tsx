@@ -18,7 +18,6 @@ import {
   MessageSquare,
   BarChart3,
   CheckSquare,
-  Plus,
   ExternalLink,
   BookOpen,
   Users,

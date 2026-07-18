@@ -173,7 +173,7 @@ export const DepartmentsSection: React.FC = () => {
                     color: activeDept === dept.id ? dept.color : '#64748B',
                   }}
                 >
-                  {React.cloneElement(dept.icon as React.ReactElement, { className: 'w-4 h-4' })}
+                  {React.cloneElement(dept.icon as React.ReactElement<{ className?: string }>, { className: 'w-4 h-4' })}
                 </div>
 
                 <div className="min-w-0">

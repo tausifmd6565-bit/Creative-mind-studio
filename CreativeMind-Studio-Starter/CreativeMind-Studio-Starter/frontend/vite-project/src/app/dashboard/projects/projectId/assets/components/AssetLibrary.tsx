@@ -21,7 +21,8 @@ import {
 import { AssetCard } from './AssetCard';
 import type { AssetCard as AssetCardType, ViewMode } from '../types';
 
-const EASE = [0.22, 1, 0.36, 1] as const;
+const _EASE = [0.22, 1, 0.36, 1] as const;
+void _EASE;
 
 // ─── View mode config ─────────────────────────────────────────────────────────
 

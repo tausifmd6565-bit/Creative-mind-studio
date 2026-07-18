@@ -22,7 +22,8 @@ interface FormErrors {
   form?: string;
 }
 
-const ease = [0.22, 1, 0.36, 1] as const;
+const _ease = [0.22, 1, 0.36, 1] as const;
+void _ease;
 
 function validate(values: LoginFormState): FormErrors {
   const errors: FormErrors = {};

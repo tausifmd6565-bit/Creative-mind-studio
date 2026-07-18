@@ -12,9 +12,9 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowLeft, Download, ShieldCheck, AlertTriangle, CheckCircle2,
+  ArrowLeft, Download, ShieldCheck, CheckCircle2,
   XCircle, List, Eye, Table2, Activity, ChevronLeft, ChevronRight,
-  Sparkles, ClipboardList, BarChart3, Clock
+  ClipboardList, Clock
 } from 'lucide-react';
 import { REVIEW_CATEGORIES, REVIEW_ITEMS, REVIEW_PROJECT } from './mockData';
 import type { CategoryId } from './mockData';

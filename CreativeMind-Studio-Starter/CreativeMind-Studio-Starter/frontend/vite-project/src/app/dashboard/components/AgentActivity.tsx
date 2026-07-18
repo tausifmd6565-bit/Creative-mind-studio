@@ -1,7 +1,7 @@
 /**
  * AgentActivity — live AI agent status cards with animated progress + typing indicators.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Cpu, AlertCircle, CheckCircle2, Clock, Zap } from 'lucide-react';
 import type { AgentCard } from '../hooks/useDashboardData';

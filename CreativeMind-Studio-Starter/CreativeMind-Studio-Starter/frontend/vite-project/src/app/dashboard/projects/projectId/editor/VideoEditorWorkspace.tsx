@@ -13,7 +13,7 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Download, LayoutTemplate, Film,
-  SlidersHorizontal, Sparkles, ChevronLeft, ChevronRight,
+  Sparkles, ChevronLeft, ChevronRight,
   Video, List, Inspect, AlertTriangle, CheckCircle2,
   BarChart2
 } from 'lucide-react';

@@ -5,14 +5,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  FileText, Link2, Database, BookOpen, CheckCircle2,
+  FileText, Link2, BookOpen, CheckCircle2,
   XCircle, AlertTriangle, RefreshCw, MessageSquare, User,
-  ExternalLink, Film, Eye, History, Zap, Shield, Clock
+  ExternalLink, Film, Eye, History, Zap, Shield
 } from 'lucide-react';
 import type { ReviewItem } from '../mockData';
 import {
-  ReviewStatusBadge, SeverityBadge, ReviewerAvatar, RiskLabel,
-  SectionHeader, PanelTabs, QuickActionBtn
+  ReviewStatusBadge, SeverityBadge, ReviewerAvatar,
+  SectionHeader, QuickActionBtn
 } from './ReviewShared';
 
 const INSPECTOR_TABS = [

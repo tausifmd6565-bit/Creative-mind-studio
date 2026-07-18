@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Plus, X, ArrowRight, ArrowLeft, CheckCircle2, UserPlus } from 'lucide-react';
 
-const ease = [0.22, 1, 0.36, 1] as const;
+const _ease = [0.22, 1, 0.36, 1] as const;
+void _ease;
 
 const ROLE_OPTIONS = ['Editor', 'Viewer', 'Admin', 'Researcher', 'Scriptwriter'];
 

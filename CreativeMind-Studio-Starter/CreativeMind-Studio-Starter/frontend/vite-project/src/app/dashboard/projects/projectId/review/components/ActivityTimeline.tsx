@@ -6,7 +6,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   CheckCircle2, XCircle, MessageSquare, User,
-  AlertOctagon, RefreshCw, Play, Lock
+  AlertOctagon, RefreshCw, Play
 } from 'lucide-react';
 import type { ActivityEvent, ActivityType } from '../mockData';
 import { ACTIVITY_TIMELINE } from '../mockData';

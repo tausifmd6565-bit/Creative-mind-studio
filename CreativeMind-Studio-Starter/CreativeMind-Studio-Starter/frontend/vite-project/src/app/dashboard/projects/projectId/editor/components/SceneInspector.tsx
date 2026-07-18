@@ -8,11 +8,11 @@ import {
   Camera, FileText, Film, Layers, Volume2, BookOpen, MessageSquare,
   Clock, CheckCircle2, XCircle, Download, ExternalLink, AlertTriangle,
   User, Sparkles, Shield, Music, Mic2, Map, Type, Zap, History,
-  ChevronRight, Star, Info
+  ChevronRight
 } from 'lucide-react';
 import type { Scene } from '../mockData';
 import {
-  PanelTabs, SectionHeader, AssetStatusTag, EditingStatusBadge,
+  SectionHeader, AssetStatusTag, EditingStatusBadge,
   VisualTypeBadge, AssetReadinessBadge, MetricStat, EditorAvatar
 } from './EditorShared';
 

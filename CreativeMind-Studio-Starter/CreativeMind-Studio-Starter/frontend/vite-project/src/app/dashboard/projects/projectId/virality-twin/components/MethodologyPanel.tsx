@@ -17,7 +17,7 @@ const SECTIONS = [
   {
     id: 'retention',
     title: 'How Retention Is Estimated',
-    body: `Retention curves are estimated by mapping your concept\'s structural attributes to similar content pieces in the simulated dataset and averaging their historical retention curves. The "Your Concept" line in the retention chart is a projected estimate based on structural pattern matching — it is not a guarantee of performance. Actual retention will depend on production quality, distribution timing, and platform algorithm state.`,
+    body: `Retention curves are estimated by mapping your concept's structural attributes to similar content pieces in the simulated dataset and averaging their historical retention curves. The "Your Concept" line in the retention chart is a projected estimate based on structural pattern matching — it is not a guarantee of performance. Actual retention will depend on production quality, distribution timing, and platform algorithm state.`,
   },
   {
     id: 'confidence',

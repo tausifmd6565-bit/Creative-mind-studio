@@ -119,7 +119,7 @@ const FilterSection: React.FC<{
 
 // ─── Active filter tag ────────────────────────────────────────────────────────
 
-const FilterTag: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
+export const FilterTag: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
   <motion.span
     layout
     initial={{ opacity: 0, scale: 0.85 }}
