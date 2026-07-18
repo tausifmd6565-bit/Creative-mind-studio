@@ -39,6 +39,7 @@ import { VideoEditorWorkspace } from './app/dashboard/projects/projectId/editor/
 import { ReviewApprovalRoom } from './app/dashboard/projects/projectId/review/ReviewApprovalRoom';
 import { DistributionRoom } from './app/dashboard/projects/projectId/distribution/DistributionRoom';
 import { PerformanceWorkspace } from './app/dashboard/projects/projectId/analytics/PerformanceWorkspace';
+import { NotificationsWorkspace } from './app/dashboard/notifications/NotificationsWorkspace';
 
 type AppView =
   | 'marketing'
@@ -54,10 +55,11 @@ type AppView =
   | 'editor'
   | 'review'
   | 'distribution'
-  | 'performance';
+  | 'performance'
+  | 'notifications';
 
 // ← Change this to jump to a specific screen during development
-const DEFAULT_VIEW: AppView = 'performance';
+const DEFAULT_VIEW: AppView = 'notifications';
 
 export default function App() {
   const [view, setView] = useState<AppView>(DEFAULT_VIEW);
@@ -206,6 +208,16 @@ export default function App() {
           <PerformanceWorkspace
             onBack={() => setView('distribution')}
           />
+        </MainLayout>
+      </LayoutProvider>
+    );
+  }
+
+  if (view === 'notifications') {
+    return (
+      <LayoutProvider>
+        <MainLayout>
+          <NotificationsWorkspace />
         </MainLayout>
       </LayoutProvider>
     );
