@@ -91,7 +91,7 @@ const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
 ];
 
 export const MobileBottomNav: React.FC = () => {
-  const { activeNavId, setActiveNavId } = useLayout();
+  const { activeNavId, navigate } = useLayout();
 
   return (
     <nav
@@ -106,7 +106,7 @@ export const MobileBottomNav: React.FC = () => {
           <button
             key={item.id}
             type="button"
-            onClick={() => setActiveNavId(item.id)}
+            onClick={() => navigate(item.id)}
             aria-current={isActive ? 'page' : undefined}
             aria-label={item.label}
             className={`

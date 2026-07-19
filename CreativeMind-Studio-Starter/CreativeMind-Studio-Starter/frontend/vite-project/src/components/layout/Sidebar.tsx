@@ -189,7 +189,7 @@ const SectionLabel: React.FC<SectionLabelProps> = ({ label, collapsed }) => {
 // ─── Main Sidebar ─────────────────────────────────────────────────────────────
 
 export const Sidebar: React.FC = () => {
-  const { sidebarCollapsed, setSidebarCollapsed, activeNavId, setActiveNavId, activeProject } =
+  const { sidebarCollapsed, setSidebarCollapsed, activeNavId, activeProject, navigate } =
     useLayout();
 
   const collapsed = sidebarCollapsed;
@@ -246,7 +246,7 @@ export const Sidebar: React.FC = () => {
                 item={item}
                 isActive={activeNavId === item.id}
                 collapsed={collapsed}
-                onClick={() => setActiveNavId(item.id)}
+                onClick={() => navigate(item.id)}
               />
             </li>
           ))}
@@ -273,7 +273,7 @@ export const Sidebar: React.FC = () => {
                       item={item}
                       isActive={activeNavId === item.id}
                       collapsed={collapsed}
-                      onClick={() => setActiveNavId(item.id)}
+                      onClick={() => navigate(item.id)}
                     />
                   </li>
                 ))}

@@ -86,7 +86,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onMobileMenuToggle,
   notificationCount = 3,
 }) => {
-  const { activeProject, setCommandPaletteOpen, primaryAction } = useLayout();
+  const { activeProject, setCommandPaletteOpen, primaryAction, navigate } = useLayout();
 
   const openCommandPalette = useCallback(() => {
     setCommandPaletteOpen(true);
@@ -171,6 +171,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <div className="relative">
           <button
             type="button"
+            onClick={() => navigate('notifications')}
             aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount} unread)` : ''}`}
             className="w-8 h-8 flex items-center justify-center rounded-[8px]
               text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-colors duration-150"
@@ -234,6 +235,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.15 }}
               type="button"
+              onClick={() => navigate('create-project')}
               className="flex items-center gap-1.5 h-8 px-3.5 rounded-[10px]
                 bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6]
                 hover:from-[#8B5CF6] hover:to-[#9D6CFF]

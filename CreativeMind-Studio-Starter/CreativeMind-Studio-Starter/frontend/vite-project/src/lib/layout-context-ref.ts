@@ -7,6 +7,9 @@
 import { createContext } from 'react';
 import type { LayoutContextValue, Workspace } from '../types/shell';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const NOOP_NAVIGATE = (_id: string) => {};
+
 export const LayoutContext = createContext<LayoutContextValue | null>(null);
 
 export const DEFAULT_WORKSPACE: Workspace = {

@@ -11,6 +11,7 @@ import {
   LayoutContext,
   DEFAULT_WORKSPACE,
   DEFAULT_WORKSPACES,
+  NOOP_NAVIGATE,
 } from './layout-context-ref';
 import type {
   ActiveNavId,
@@ -23,9 +24,11 @@ import type {
 
 interface LayoutProviderProps {
   children: React.ReactNode;
+  /** Called when the user clicks a nav item. The id is the NavItemId / ProjectNavItemId string. */
+  onNavigate?: (id: ActiveNavId) => void;
 }
 
-export const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
+export const LayoutProvider: React.FC<LayoutProviderProps> = ({ children, onNavigate }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -48,6 +51,12 @@ export const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // navigate: update active highlight AND call the App-level view switcher
+  const navigate = useCallback((id: ActiveNavId) => {
+    setActiveNavId(id);
+    (onNavigate ?? NOOP_NAVIGATE)(id);
+  }, [onNavigate]);
+
   const value = useMemo<LayoutContextValue>(
     () => ({
       sidebarCollapsed,
@@ -67,6 +76,7 @@ export const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
       workspaces: DEFAULT_WORKSPACES,
       primaryAction,
       setPrimaryAction,
+      navigate,
     }),
     [
       sidebarCollapsed,
@@ -78,6 +88,7 @@ export const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
       activeWorkspace,
       primaryAction,
       handleSetActiveProject,
+      navigate,
     ]
   );
 

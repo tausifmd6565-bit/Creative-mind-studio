@@ -5,45 +5,56 @@
  * App.tsx — root component.
  *
  * All heavy workspace pages are lazy-loaded via React.lazy() + Suspense.
- * Each workspace gets its own dynamic import so Vite can code-split it.
  * The WorkspaceLoader skeleton is shown while the chunk downloads.
  *
- * Switches between fourteen top-level experiences:
- *   1. Marketing landing page      (view = 'marketing')
- *   2. Auth / Onboarding flow      (view = 'auth')
- *   3. Application shell           (view = 'app')
- *   4. Project creation wizard     (view = 'create-project')
- *   5. Project Overview            (view = 'project-overview')
- *   6. Strategy War Room           (view = 'strategy')
- *   7. Virality Twin Workspace     (view = 'virality-twin')
- *   8. Research Lab                (view = 'research-lab')
- *   9. Script & Story Room         (view = 'script-room')
- *  10. Asset Room                  (view = 'asset-room')
- *  11. Video Editor Workspace      (view = 'editor')
- *  12. Review & Approval Room      (view = 'review')
- *  13. Distribution Room           (view = 'distribution')
- *  14. Performance Workspace       (view = 'performance')
- *  15. Notifications               (view = 'notifications')
+ * Navigation is driven by a `view` state string.  The LayoutProvider receives
+ * an `onNavigate` callback so sidebar / header clicks update `view` directly.
  *
- * Change DEFAULT_VIEW to start on a different screen during development.
+ * Views:
+ *   marketing        — Public landing page
+ *   auth             — Login / onboarding
+ *   app              — Dashboard home  (default)
+ *   projects         — Projects list
+ *   team             — Team management
+ *   agents           — AI Agents
+ *   analytics        — Cross-project analytics
+ *   templates        — Templates library
+ *   settings         — Workspace settings
+ *   notifications    — Notifications center
+ *   create-project   — New project wizard
+ *   project-overview — Single project overview
+ *   strategy         — Strategy War Room
+ *   virality-twin    — Virality Twin
+ *   research-lab     — Research Lab
+ *   script-room      — Script & Story Room
+ *   asset-room       — Asset Room
+ *   editor           — Video Editor
+ *   review           — Review & Approval
+ *   distribution     — Distribution Room
+ *   performance      — Performance Workspace
  */
 
 import React, { lazy, Suspense, useCallback, useState } from 'react';
 
 // ── Always-loaded shell ──────────────────────────────────────────────────────
-// These are part of the main chunk because they are needed on the very first
-// paint (shell chrome, layout provider, auth router).
 import { LayoutProvider } from './lib/LayoutContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { WorkspaceLoader } from './components/shared/WorkspaceLoader';
+import type { ActiveNavId } from './types/shell';
 
 // ── Lazy workspace pages ─────────────────────────────────────────────────────
-// Each dynamic import() creates a separate code-split chunk.
-// Vite groups related chunks via the manualChunks strategy in vite.config.ts.
 
 const MarketingPage        = lazy(() => import('./app/marketing/page').then(m => ({ default: m.MarketingPage })));
 const AuthRouter           = lazy(() => import('./app/auth/AuthRouter').then(m => ({ default: m.AuthRouter })));
 const DashboardPage        = lazy(() => import('./app/dashboard/page').then(m => ({ default: m.DashboardPage })));
+
+const ProjectsPage         = lazy(() => import('./app/dashboard/projects/page'));
+const TeamPage             = lazy(() => import('./app/dashboard/team/page'));
+const NotificationsPage    = lazy(() => import('./app/dashboard/notifications/page'));
+const AgentsPage           = lazy(() => import('./app/dashboard/agents/page'));
+const AnalyticsPage        = lazy(() => import('./app/dashboard/analytics/page'));
+const TemplatesPage        = lazy(() => import('./app/dashboard/templates/page'));
+const SettingsPage         = lazy(() => import('./app/dashboard/settings/page'));
 
 const ProjectCreationWizard = lazy(() =>
   import('./app/create-project/ProjectCreationWizard').then(m => ({ default: m.ProjectCreationWizard }))
@@ -78,9 +89,6 @@ const DistributionRoom     = lazy(() =>
 const PerformanceWorkspace = lazy(() =>
   import('./app/dashboard/projects/projectId/analytics/PerformanceWorkspace').then(m => ({ default: m.PerformanceWorkspace }))
 );
-const NotificationsWorkspace = lazy(() =>
-  import('./app/dashboard/notifications/NotificationsWorkspace').then(m => ({ default: m.NotificationsWorkspace }))
-);
 
 // ── App view type ─────────────────────────────────────────────────────────────
 
@@ -88,6 +96,13 @@ type AppView =
   | 'marketing'
   | 'auth'
   | 'app'
+  | 'projects'
+  | 'team'
+  | 'agents'
+  | 'analytics'
+  | 'templates'
+  | 'settings'
+  | 'notifications'
   | 'create-project'
   | 'project-overview'
   | 'strategy'
@@ -98,20 +113,48 @@ type AppView =
   | 'editor'
   | 'review'
   | 'distribution'
-  | 'performance'
-  | 'notifications';
+  | 'performance';
 
-// ← Change this to jump to a specific screen during development
-const DEFAULT_VIEW: AppView = 'notifications';
+// Map sidebar nav-item ids → AppView
+// Primary nav ids match directly; project nav ids need remapping.
+const NAV_ID_TO_VIEW: Record<string, AppView> = {
+  // Primary nav
+  home:           'app',
+  projects:       'projects',
+  agents:         'agents',
+  team:           'team',
+  notifications:  'notifications',
+  analytics:      'analytics',
+  templates:      'templates',
+  settings:       'settings',
+  // Top-level shortcuts
+  'create-project': 'create-project',
+  // Project-level nav
+  'project-overview': 'project-overview',
+  'strategy-room':    'strategy',
+  'virality-twin':    'virality-twin',
+  'research-lab':     'research-lab',
+  'story-script':     'script-room',
+  'asset-room':       'asset-room',
+  'editor-workspace': 'editor',
+  'review-approval':  'review',
+  distribution:       'distribution',
+  performance:        'performance',
+};
+
+const DEFAULT_VIEW: AppView = 'app';
 
 // ── Per-view fallback config ──────────────────────────────────────────────────
-// Marketing and auth pages are single-panel so skip the triple-column skeleton.
 
 function getLoaderFallback(view: AppView) {
   if (view === 'marketing' || view === 'auth') {
     return <WorkspaceLoader showLeft={false} showRight={false} />;
   }
-  if (view === 'app' || view === 'notifications') {
+  if (
+    view === 'app' || view === 'projects' || view === 'team' ||
+    view === 'notifications' || view === 'agents' || view === 'analytics' ||
+    view === 'templates' || view === 'settings'
+  ) {
     return <WorkspaceLoader showLeft={false} showRight={false} />;
   }
   return <WorkspaceLoader />;
@@ -122,9 +165,15 @@ function getLoaderFallback(view: AppView) {
 export default function App() {
   const [view, setView] = useState<AppView>(DEFAULT_VIEW);
 
-  // Stable callbacks — identity never changes, so LayoutProvider/MainLayout
-  // never unmounts between workspace navigations.
+  // Called by LayoutProvider whenever the user clicks a nav item.
+  const handleNavigate = useCallback((id: ActiveNavId) => {
+    const nextView = NAV_ID_TO_VIEW[id];
+    if (nextView) setView(nextView);
+  }, []);
+
+  // Stable view-setter callbacks used by workspace pages (back / continue).
   const goApp             = useCallback(() => setView('app'),             []);
+  const goProjects        = useCallback(() => setView('projects'),        []);
   const goProjectOverview = useCallback(() => setView('project-overview'),[]);
   const goStrategy        = useCallback(() => setView('strategy'),        []);
   const goViralityTwin    = useCallback(() => setView('virality-twin'),   []);
@@ -159,8 +208,60 @@ export default function App() {
   // Keeping them in one tree prevents the provider from tearing down and
   // recreating its context value on every navigation.
   return (
-    <LayoutProvider>
+    <LayoutProvider onNavigate={handleNavigate}>
       <MainLayout>
+
+        {/* ── Dashboard home ── */}
+        {view === 'app' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <DashboardPage />
+          </Suspense>
+        )}
+
+        {/* ── Primary nav pages ── */}
+        {view === 'projects' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <ProjectsPage />
+          </Suspense>
+        )}
+
+        {view === 'team' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <TeamPage />
+          </Suspense>
+        )}
+
+        {view === 'notifications' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <NotificationsPage />
+          </Suspense>
+        )}
+
+        {view === 'agents' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <AgentsPage />
+          </Suspense>
+        )}
+
+        {view === 'analytics' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <AnalyticsPage />
+          </Suspense>
+        )}
+
+        {view === 'templates' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <TemplatesPage />
+          </Suspense>
+        )}
+
+        {view === 'settings' && (
+          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
+            <SettingsPage />
+          </Suspense>
+        )}
+
+        {/* ── Project creation wizard ── */}
         {view === 'create-project' && (
           <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
             <ProjectCreationWizard
@@ -170,9 +271,10 @@ export default function App() {
           </Suspense>
         )}
 
+        {/* ── Project-level workspace pages ── */}
         {view === 'project-overview' && (
           <Suspense fallback={<WorkspaceLoader showLeft={false} />}>
-            <ProjectOverviewPage onBack={goApp} />
+            <ProjectOverviewPage onBack={goProjects} />
           </Suspense>
         )}
 
@@ -254,33 +356,7 @@ export default function App() {
           </Suspense>
         )}
 
-        {view === 'notifications' && (
-          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
-            <NotificationsWorkspace />
-          </Suspense>
-        )}
-
-        {/* Default: dashboard */}
-        {(view === 'app' || (
-          view !== 'create-project' &&
-          view !== 'project-overview' &&
-          view !== 'strategy' &&
-          view !== 'virality-twin' &&
-          view !== 'research-lab' &&
-          view !== 'script-room' &&
-          view !== 'asset-room' &&
-          view !== 'editor' &&
-          view !== 'review' &&
-          view !== 'distribution' &&
-          view !== 'performance' &&
-          view !== 'notifications'
-        )) && (
-          <Suspense fallback={<WorkspaceLoader showLeft={false} showRight={false} />}>
-            <DashboardPage />
-          </Suspense>
-        )}
       </MainLayout>
     </LayoutProvider>
   );
 }
-

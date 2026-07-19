@@ -121,6 +121,8 @@ export interface LayoutContextValue {
   workspaces: Workspace[];
   primaryAction: PrimaryAction | null;
   setPrimaryAction: (a: PrimaryAction | null) => void;
+  /** Navigate to a named view by nav-item id (e.g. 'home', 'projects', 'notifications'). */
+  navigate: (id: ActiveNavId) => void;
 }
 
 // ─── Realtime ────────────────────────────────────────────────────────────────
