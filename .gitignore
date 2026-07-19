@@ -1,0 +1,31 @@
+# Environment & Secrets
+.env
+.env.*
+
+# Personal plans/tasks
+silentkillr-plan.md
+task_silentkillr.pdf
+CreativeMind_Studio_v4_PRD.pdf
+
+# Python, Caches & Environments
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+**/.venv/
+**/venv/
+**/env/
+dist/
+build/
+.eggs/
+
+# Testing, Linting & Reports
+**/.pytest_cache/
+**/.ruff_cache/
+**/.coverage
+htmlcov/
+
+# IDEs & System Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
