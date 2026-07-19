@@ -5,11 +5,17 @@
  * Mobile: tabs — Notifications | Preferences
  *
  * All state lives here and is threaded down to child panels.
+ *
+ * Performance:
+ *  - searchQuery is debounced 300ms before being passed to NotificationFeed
+ *    so the filter+sort pipeline doesn't run on every keystroke.
+ *  - Handlers are memoised with useCallback.
  */
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, SlidersHorizontal } from 'lucide-react';
+import { useDebounce } from '../../../lib/performance';
 import { NotificationFilters }         from './components/NotificationFilters';
 import { NotificationFeed }            from './components/NotificationFeed';
 import { NotificationPreferencesPanel } from './components/NotificationPreferences';
@@ -21,10 +27,48 @@ import type {
 // ─── Mobile tabs ──────────────────────────────────────────────────────────────
 
 type MobileTab = 'notifications' | 'preferences';
+
 const MOBILE_TABS: Array<{ id: MobileTab; label: string; Icon: React.ElementType }> = [
   { id: 'notifications', label: 'Notifications', Icon: Bell },
   { id: 'preferences',   label: 'Preferences',   Icon: SlidersHorizontal },
 ];
+
+// All filter tabs used in the mobile strip — mirrors the FilterTab type
+const MOBILE_FILTER_TABS: FilterTab[] = [
+  'all', 'unread', 'assignments', 'mentions', 'ai-agents', 'deadlines', 'approvals', 'warnings',
+];
+
+function formatFilterLabel(f: FilterTab): string {
+  if (f === 'ai-agents') return 'AI Agents';
+  return f.charAt(0).toUpperCase() + f.slice(1);
+}
+
+// ─── Mobile preferences panel ─────────────────────────────────────────────────
+
+interface MobilePrefsViewProps {
+  prefs: NotificationPreferences;
+  onPrefChange: (key: keyof NotificationPreferences, value: boolean) => void;
+}
+
+const MobilePrefsView: React.FC<MobilePrefsViewProps> = ({ prefs, onPrefChange }) => (
+  <div className="h-full overflow-y-auto bg-[#09090F] px-4 py-5 space-y-5">
+    <div className="flex items-center gap-2.5 mb-2">
+      <div className="w-8 h-8 rounded-lg bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center">
+        <SlidersHorizontal className="w-4 h-4 text-brand-electric" />
+      </div>
+      <div>
+        <h3 className="font-display font-semibold text-slate-100 text-[14px]">Preferences</h3>
+        <p className="text-[11px] text-slate-600 font-mono">Manage notification settings</p>
+      </div>
+    </div>
+    <NotificationPreferencesPanel
+      isOpen={false}
+      prefs={prefs}
+      onChange={onPrefChange}
+      onClose={() => {}}
+    />
+  </div>
+);
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -40,6 +84,9 @@ export const NotificationsWorkspace: React.FC = () => {
   const [sortOrder, setSortOrder]         = useState<SortOrder>('newest');
   const [prefsOpen, setPrefsOpen]         = useState(false);
   const [mobileTab, setMobileTab]         = useState<MobileTab>('notifications');
+
+  // Debounce the search query so filters only recompute after 300ms of silence
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   // ── Actions ─────────────────────────────────────────────────────────────────
 
@@ -62,38 +109,17 @@ export const NotificationsWorkspace: React.FC = () => {
   }, []);
 
   // ── Shared feed props ────────────────────────────────────────────────────────
+  // Pass debouncedSearch instead of raw searchQuery to prevent per-keystroke
+  // filter pipeline re-execution inside NotificationFeed.
 
   const feedProps = {
     notifications,
     activeFilter,
-    searchQuery,
+    searchQuery: debouncedSearch,
     sortOrder,
     onMarkRead:  handleMarkRead,
     onDelete:    handleDelete,
   };
-
-  // ── Mobile preferences view ──────────────────────────────────────────────────
-
-  const MobilePrefsView = () => (
-    <div className="h-full overflow-y-auto bg-[#09090F] px-4 py-5 space-y-5">
-      <div className="flex items-center gap-2.5 mb-2">
-        <div className="w-8 h-8 rounded-lg bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center">
-          <SlidersHorizontal className="w-4 h-4 text-brand-electric" />
-        </div>
-        <div>
-          <h3 className="font-display font-semibold text-slate-100 text-[14px]">Preferences</h3>
-          <p className="text-[11px] text-slate-600 font-mono">Manage notification settings</p>
-        </div>
-      </div>
-      {/* Re-use the preferences panel content inline for mobile */}
-      <NotificationPreferencesPanel
-        isOpen={false}
-        prefs={prefs}
-        onChange={handlePrefChange}
-        onClose={() => {}}
-      />
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#0B0B12] text-slate-100 font-sans">
@@ -191,12 +217,13 @@ export const NotificationsWorkspace: React.FC = () => {
                       placeholder="Search notifications..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
+                      aria-label="Search notifications"
                       className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg text-xs text-slate-300 placeholder-slate-600 font-sans py-2 px-3 focus:outline-none focus:border-brand-purple/40 transition-colors duration-150"
                     />
                   </div>
                   {/* Horizontal filter scroll */}
-                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    {(['all', 'unread', 'assignments', 'mentions', 'ai-agents', 'deadlines', 'approvals', 'warnings'] as FilterTab[]).map(f => (
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" role="group" aria-label="Filter notifications">
+                    {MOBILE_FILTER_TABS.map(f => (
                       <button
                         key={f}
                         onClick={() => setActiveFilter(f)}
@@ -205,8 +232,9 @@ export const NotificationsWorkspace: React.FC = () => {
                             ? 'bg-brand-purple/20 border-brand-purple/30 text-brand-electric'
                             : 'bg-white/[0.04] border-white/[0.07] text-slate-500'
                           }`}
+                        aria-pressed={activeFilter === f}
                       >
-                        {f === 'ai-agents' ? 'AI Agents' : f.charAt(0).toUpperCase() + f.slice(1)}
+                        {formatFilterLabel(f)}
                       </button>
                     ))}
                   </div>
@@ -225,7 +253,7 @@ export const NotificationsWorkspace: React.FC = () => {
                 transition={{ duration: 0.2 }}
                 className="h-full overflow-y-auto"
               >
-                <MobilePrefsView />
+                <MobilePrefsView prefs={prefs} onPrefChange={handlePrefChange} />
               </motion.div>
             )}
           </AnimatePresence>

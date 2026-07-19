@@ -20,15 +20,18 @@ import {
   ChevronLeft,
   FileSearch,
 } from 'lucide-react';
+import { useDebounce } from '../../../../../lib/performance';
 import { useLayout } from '../../../../../lib/useLayout';
-import { QuestionBoard }       from './components/QuestionBoard';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
+import { WorkspacePanelHeader } from '../WorkspacePanelHeader';
+import { QuestionBoard }        from './components/QuestionBoard';
 import { SourceGrid, SourceFilterBar } from './components/SourceCard';
-import { EvidenceInspector }   from './components/EvidenceInspector';
-import { EvidenceMapView }     from './components/EvidenceMap';
-import { CoverageBar }         from './components/CoverageBar';
-import { DocumentPreviewGrid } from './components/DocumentPreview';
-import { ResearchActions }     from './components/ResearchActions';
-import { MOCK_RESEARCH_LAB }   from './mockData';
+import { EvidenceInspector }    from './components/EvidenceInspector';
+import { EvidenceMapView }      from './components/EvidenceMap';
+import { CoverageBar }          from './components/CoverageBar';
+import { DocumentPreviewGrid }  from './components/DocumentPreview';
+import { ResearchActions }      from './components/ResearchActions';
+import { MOCK_RESEARCH_LAB }    from './mockData';
 import type { VerificationStatus, SourceType, SourceCard } from './types';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -53,30 +56,9 @@ const CENTER_VIEWS: Array<{ id: CenterView; label: string; icon: React.ReactNode
   { id: 'documents', label: 'Documents',    icon: <LayoutGrid  className="w-3.5 h-3.5" /> },
 ];
 
-// ─── Section heading ──────────────────────────────────────────────────────────
-
-const PanelHeader: React.FC<{
-  title: string;
-  subtitle?: string;
-  icon: React.ReactNode;
-  iconColor: string;
-  actions?: React.ReactNode;
-}> = ({ title, subtitle, icon, iconColor, actions }) => (
-  <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3
-    border-b border-white/[0.06] bg-[#0B0B12]/60 backdrop-blur-sm">
-    <div
-      className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
-      style={{ background: iconColor + '20', border: `1px solid ${iconColor}30`, color: iconColor }}
-    >
-      {icon}
-    </div>
-    <div className="flex-1 min-w-0">
-      <h2 className="font-display font-semibold text-[13px] text-white leading-tight">{title}</h2>
-      {subtitle && <p className="text-[10px] font-mono text-slate-600 truncate">{subtitle}</p>}
-    </div>
-    {actions}
-  </div>
-);
+// ResearchLabPage uses WorkspacePanelHeader from the shared module.
+// PanelHeader alias kept for minimal diff in JSX below.
+const PanelHeader = WorkspacePanelHeader;
 
 // ─── Tab row ──────────────────────────────────────────────────────────────────
 
@@ -187,6 +169,7 @@ export const ResearchLabPage: React.FC<ResearchLabPageProps> = ({
   const [selectedId,   setSelectedId]   = useState<string | null>('s2');
   const [sourceFilter, setSourceFilter] = useState<VerificationStatus | SourceType | 'all'>('all');
   const [searchQuery,  setSearchQuery]  = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 250);
 
   // ── Shell integration ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -204,7 +187,7 @@ export const ResearchLabPage: React.FC<ResearchLabPageProps> = ({
     return () => setPrimaryAction(null);
   }, [setBreadcrumbs, setPrimaryAction, setActiveNavId, data.projectTitle]);
 
-  // ── Filtered sources ──────────────────────────────────────────────────────
+  // ── Filtered sources — debounced search prevents per-keystroke rerenders ──
   const filteredSources = useMemo(() => {
     let list = data.sources;
     if (sourceFilter !== 'all') {
@@ -213,8 +196,8 @@ export const ResearchLabPage: React.FC<ResearchLabPageProps> = ({
         s.sourceType === sourceFilter
       );
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
       list = list.filter(s =>
         s.title.toLowerCase().includes(q) ||
         s.author.toLowerCase().includes(q) ||
@@ -222,7 +205,7 @@ export const ResearchLabPage: React.FC<ResearchLabPageProps> = ({
       );
     }
     return list;
-  }, [data.sources, sourceFilter, searchQuery]);
+  }, [data.sources, sourceFilter, debouncedSearch]);
 
   // ── Selected source ───────────────────────────────────────────────────────
   const selectedSource: SourceCard | null = selectedId
@@ -358,6 +341,24 @@ export const ResearchLabPage: React.FC<ResearchLabPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── Workflow context bar ── */}
+      <WorkflowContextBar
+        stage="Research Lab"
+        stageColor="#06B6D4"
+        responsible={{ name: 'James Park', initials: 'JP', color: '#06B6D4' }}
+        completion={data.coverage.coveragePercent}
+        blockedCount={data.sources.filter(s => s.verificationStatus === 'unverified').length}
+        aiActive
+        aiAgentName="ResearchOwl"
+        decisionsLogged={data.questions.length}
+        sourcesVerified={data.coverage.verifiedSources}
+        sourcesTotal={data.coverage.totalSources}
+        scenesMapped={data.sources.filter(s => s.verificationStatus === 'verified').length}
+        scenesTotal={data.coverage.totalSources}
+        approvalsApproved={data.coverage.verifiedSources}
+        approvalsTotal={data.coverage.totalSources}
+      />
 
       {/* ── MOBILE: Tabs ── */}
       <div className="lg:hidden flex-shrink-0 px-4 pt-3">

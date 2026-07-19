@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useLayout } from '../../../../../lib/useLayout';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
 import { FiltersBar }         from './components/FiltersBar';
 import { TwinComparison }     from './components/ComparisonCard';
 import { ComparisonTable }    from './components/ComparisonTable';
@@ -152,6 +153,24 @@ export const ViralityTwinPage: React.FC<ViralityTwinPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── Workflow context bar ── */}
+      <WorkflowContextBar
+        stage="Virality Twin"
+        stageColor="#10B981"
+        responsible={{ name: 'James Park', initials: 'JP', color: '#10B981' }}
+        completion={data.conceptCard.successLevel === 'viral' ? 100 : data.conceptCard.successLevel === 'average' ? 55 : 25}
+        blockedCount={data.insights.filter(i => i.priority === 'critical').length}
+        aiActive={isRunning}
+        aiAgentName="ViralityBot"
+        decisionsLogged={data.insights.length}
+        sourcesVerified={data.insights.filter(i => i.priority !== 'critical').length}
+        sourcesTotal={data.insights.length}
+        scenesMapped={data.metrics.filter(m => m.yourScore >= m.successAvg).length}
+        scenesTotal={data.metrics.length}
+        approvalsApproved={data.insights.filter(i => i.priority !== 'critical' && i.priority !== 'high').length}
+        approvalsTotal={data.insights.length}
+      />
 
       {/* ── Scrollable body ── */}
       <div className="flex-1 overflow-y-auto">

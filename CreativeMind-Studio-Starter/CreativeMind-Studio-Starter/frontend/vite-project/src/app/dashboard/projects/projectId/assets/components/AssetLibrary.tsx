@@ -5,7 +5,7 @@
  * ⚠️  SIMULATED DATA — Not live. Used for UI development only.
  */
 
-import React from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
@@ -21,8 +21,6 @@ import {
 import { AssetCard } from './AssetCard';
 import type { AssetCard as AssetCardType, ViewMode } from '../types';
 
-const _EASE = [0.22, 1, 0.36, 1] as const;
-void _EASE;
 
 // ─── View mode config ─────────────────────────────────────────────────────────
 
@@ -201,18 +199,25 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   onSelectAsset,
   isLoading = false,
 }) => {
-  const [sortField, setSortField] = React.useState<SortField>('addedAt');
-  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('desc');
+  const [sortField, setSortField] = useState<SortField>('addedAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  const sorted = React.useMemo(
+  const sorted = useMemo(
     () => sortAssets(assets, sortField, sortDir),
     [assets, sortField, sortDir]
   );
 
-  const toggleDir = () => setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+  const toggleDir = useCallback(() => setSortDir(d => (d === 'asc' ? 'desc' : 'asc')), []);
 
-  // Scene grouping
-  const sceneGroups = React.useMemo(() => {
+  // Stable callback ref so identity is preserved across selectedId changes.
+  // Individual AssetCard components only re-render when their own `isSelected`
+  // prop flips — not on every parent render.
+  const onSelectAssetRef = useRef(onSelectAsset);
+  onSelectAssetRef.current = onSelectAsset;
+  const stableOnSelect = useCallback((id: string) => onSelectAssetRef.current(id), []);
+
+  // Scene grouping — memoised
+  const sceneGroups = useMemo(() => {
     const groups: Record<string, AssetCardType[]> = { Unassigned: [] };
     for (const a of sorted) {
       const key = a.assignedSceneLabel ?? 'Unassigned';
@@ -222,8 +227,8 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     return groups;
   }, [sorted]);
 
-  // Risk grouping
-  const riskGroups = React.useMemo(() => {
+  // Risk grouping — memoised
+  const riskGroups = useMemo(() => {
     const groups: Record<string, AssetCardType[]> = { blocked: [], high: [], medium: [], low: [] };
     for (const a of sorted) {
       groups[a.rightsRisk]?.push(a);
@@ -349,7 +354,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                     asset={a}
                     viewMode="list"
                     isSelected={selectedId === a.id}
-                    onSelect={() => onSelectAsset(a.id)}
+                    onSelect={() => stableOnSelect(a.id)}
                   />
                 ))}
               </AnimatePresence>
@@ -369,7 +374,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                   column={col}
                   assets={sorted.filter(a => a.status === col.status)}
                   selectedId={selectedId}
-                  onSelect={onSelectAsset}
+                  onSelect={stableOnSelect}
                 />
               ))}
             </motion.div>
@@ -388,7 +393,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                     label={label}
                     assets={grpAssets}
                     selectedId={selectedId}
-                    onSelect={onSelectAsset}
+                    onSelect={stableOnSelect}
                   />
                 ) : null
               )}
@@ -408,7 +413,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                     riskLevel={level}
                     assets={grpAssets}
                     selectedId={selectedId}
-                    onSelect={onSelectAsset}
+                    onSelect={stableOnSelect}
                   />
                 ) : null
               )}
@@ -430,7 +435,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                     asset={a}
                     viewMode="grid"
                     isSelected={selectedId === a.id}
-                    onSelect={() => onSelectAsset(a.id)}
+                    onSelect={() => stableOnSelect(a.id)}
                   />
                 ))}
               </AnimatePresence>

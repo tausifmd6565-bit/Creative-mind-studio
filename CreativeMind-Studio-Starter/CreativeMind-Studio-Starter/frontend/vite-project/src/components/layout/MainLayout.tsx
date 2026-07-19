@@ -13,6 +13,9 @@
  *  Mobile:  BottomNav replaces Sidebar
  *           Drawer overlay replaces sidebar slot
  *
+ * Also mounts all global micro-interaction overlays:
+ *   DragDropOverlay, CollaboratorCursors, KeyboardShortcutsOverlay
+ *
  * Children = the workspace page content slot.
  */
 
@@ -22,6 +25,9 @@ import { TopHeader } from '../layout/TopHeader';
 import { RightInspectorPanel } from '../layout/RightInspectorPanel';
 import { CommandPalette } from '../layout/CommandPalette';
 import { MobileDrawer, MobileBottomNav } from '../layout/MobileDrawer';
+import { DragDropOverlay } from '../micro/DragDropOverlay';
+import { CollaboratorCursors } from '../micro/CollaboratorCursors';
+import { KeyboardShortcutsOverlay } from '../micro/KeyboardShortcuts';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -90,6 +96,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       {/* ── Command Palette (portal-style, always mounted) ── */}
       <CommandPalette />
+
+      {/* ── Global micro-interaction overlays ── */}
+      {/* Native file drag-and-drop indicator */}
+      <DragDropOverlay />
+
+      {/* Live collaborator cursor mock (respects prefers-reduced-motion) */}
+      <CollaboratorCursors />
+
+      {/* "?" keyboard shortcut reference overlay */}
+      <KeyboardShortcutsOverlay />
     </>
   );
 };

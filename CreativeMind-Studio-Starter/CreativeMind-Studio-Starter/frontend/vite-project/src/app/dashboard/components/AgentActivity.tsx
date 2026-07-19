@@ -1,10 +1,27 @@
 /**
  * AgentActivity — live AI agent status cards with animated progress + typing indicators.
+ * Enhanced with AgentAvatarPulse micro-interactions.
  */
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Cpu, AlertCircle, CheckCircle2, Clock, Zap } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Cpu, Zap } from 'lucide-react';
 import type { AgentCard } from '../hooks/useDashboardData';
+import { AgentAvatarPulse } from '../../../components/micro/AgentAvatarPulse';
+import type { AgentStatus as AvatarStatus } from '../../../components/micro/AgentAvatarPulse';
+import { sanitizeText } from '../../../lib/security/sanitize';
+
+// ─── Status → avatar status mapping ──────────────────────────────────────────
+
+function toAvatarStatus(status: AgentCard['status']): AvatarStatus {
+  switch (status) {
+    case 'working':  return 'working';
+    case 'thinking': return 'thinking';
+    case 'done':     return 'done';
+    case 'error':    return 'error';
+    case 'waiting':  return 'waiting';
+    default:         return 'idle';
+  }
+}
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -78,22 +95,12 @@ const AgentCardItem: React.FC<AgentCardItemProps> = ({ agent, index, currentMess
 
       {/* Header */}
       <div className="flex items-start gap-3">
-        {/* Agent avatar */}
-        <div className="relative flex-shrink-0">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center border"
-            style={{
-              background: `linear-gradient(135deg, ${agent.color}30, ${agent.color}12)`,
-              borderColor: `${agent.color}45`,
-              color: agent.color,
-            }}
-          >
-            <Bot className="w-4 h-4" />
-          </div>
-          <span
-            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0B0B12] ${meta.dotClass}`}
-          />
-        </div>
+        {/* Agent avatar — AgentAvatarPulse for animated states */}
+        <AgentAvatarPulse
+          color={agent.color}
+          status={toAvatarStatus(agent.status)}
+          size={40}
+        />
 
         <div className="flex-1 min-w-0">
           <h4 className="font-display font-semibold text-[13px] text-white truncate leading-tight">
@@ -138,8 +145,8 @@ const AgentCardItem: React.FC<AgentCardItemProps> = ({ agent, index, currentMess
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
               className={`text-[12px] leading-relaxed ${isError ? 'text-red-300' : 'text-slate-400'}`}
-            >
-              {currentMessage}
+              >
+                {sanitizeText(currentMessage)}
             </motion.p>
           )}
         </AnimatePresence>
@@ -159,7 +166,14 @@ const AgentCardItem: React.FC<AgentCardItemProps> = ({ agent, index, currentMess
               {agent.progress}%
             </span>
           </div>
-          <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden">
+          <div
+            className="h-1 rounded-full bg-white/[0.05] overflow-hidden"
+            role="progressbar"
+            aria-valuenow={agent.progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${agent.name} progress`}
+          >
             <motion.div
               className="h-full rounded-full"
               animate={{ width: `${agent.progress}%` }}

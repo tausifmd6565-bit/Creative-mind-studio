@@ -1,6 +1,10 @@
 /**
  * UploadArea.tsx — Drag-and-drop upload zone with active upload cards.
  *
+ * SECURITY: Files are validated (MIME type, extension, magic bytes, size)
+ * before being passed to the upload handler. Invalid files are rejected with
+ * user-friendly error messages. No file data is displayed without sanitization.
+ *
  * ⚠️  SIMULATED DATA — Not live. Used for UI development only.
  */
 
@@ -19,6 +23,7 @@ import {
   CloudUpload,
 } from 'lucide-react';
 import type { ActiveUpload, AssetCategory } from '../types';
+import { validateFiles, sanitizeFileName } from '../../../../../../lib/security';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -139,14 +144,42 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
   onRemoveUpload,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * Validate and forward files. Rejects files that fail validation
+   * and surfaces errors to the user without leaking technical details.
+   */
+  const processFiles = useCallback(async (rawFiles: File[]) => {
+    setValidationErrors([]);
+    if (rawFiles.length === 0) return;
+
+    const results = await validateFiles(rawFiles);
+    const errors: string[] = [];
+    const validFiles: File[] = [];
+
+    results.forEach((result, idx) => {
+      if (result.valid) {
+        // Rebuild the File with a sanitized name before handing it up
+        const safeFile = rawFiles[idx].name !== result.safeName
+          ? new File([rawFiles[idx]], sanitizeFileName(rawFiles[idx].name), { type: rawFiles[idx].type })
+          : rawFiles[idx];
+        validFiles.push(safeFile);
+      } else {
+        errors.push(...result.errors);
+      }
+    });
+
+    if (errors.length > 0) setValidationErrors(errors);
+    if (validFiles.length > 0) onFilesDropped(validFiles);
+  }, [onFilesDropped]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) onFilesDropped(files);
-  }, [onFilesDropped]);
+    processFiles(Array.from(e.dataTransfer.files));
+  }, [processFiles]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -158,16 +191,25 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
   }, []);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length > 0) onFilesDropped(files);
+    processFiles(Array.from(e.target.files ?? []));
     if (inputRef.current) inputRef.current.value = '';
-  }, [onFilesDropped]);
+  }, [processFiles]);
 
   const activeUploads = uploads.filter(u => u.status === 'uploading' || u.status === 'processing');
   const completedUploads = uploads.filter(u => u.status === 'done' || u.status === 'error');
 
   return (
     <div className="space-y-3">
+      {/* Validation errors */}
+      {validationErrors.length > 0 && (
+        <div className="rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/08 px-3 py-2.5 space-y-1">
+          {validationErrors.map((err, i) => (
+            <p key={i} className="text-[11px] font-mono text-[#EF4444]">
+              {err}
+            </p>
+          ))}
+        </div>
+      )}
       {/* Drop zone */}
       <motion.div
         onDrop={handleDrop}

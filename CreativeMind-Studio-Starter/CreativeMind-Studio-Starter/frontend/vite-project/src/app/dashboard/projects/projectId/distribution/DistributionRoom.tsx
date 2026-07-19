@@ -18,8 +18,9 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, GitCompare, Sparkles, Zap, Download,
-  ChevronLeft, ChevronRight, Radio, BookOpen, Share2,
+  ChevronLeft, ChevronRight, Radio, BookOpen, Share2, BarChart3,
 } from 'lucide-react';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
 import { DISTRIBUTION_PROJECT, PLATFORM_ADAPTATIONS } from './mockData';
 import { MasterContentPanel } from './components/MasterContentPanel';
 import { PlatformAdaptationsPanel } from './components/PlatformAdaptationsPanel';
@@ -33,6 +34,7 @@ import { StatusBadge } from './components/DistributionShared';
 
 interface DistributionRoomProps {
   onBack?: () => void;
+  onContinue?: () => void;
 }
 
 // ─── Right panel tabs ─────────────────────────────────────────────────────────
@@ -156,7 +158,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export const DistributionRoom: React.FC<DistributionRoomProps> = ({ onBack }) => {
+export const DistributionRoom: React.FC<DistributionRoomProps> = ({ onBack, onContinue }) => {
   const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(null);
   const [rightTab, setRightTab] = useState<RightTab>('comparison');
   const [mobileTab, setMobileTab] = useState<MobileTab>('platforms');
@@ -187,6 +189,24 @@ export const DistributionRoom: React.FC<DistributionRoomProps> = ({ onBack }) =>
         rightCollapsed={rightCollapsed}
         onToggleLeft={() => setLeftCollapsed(v => !v)}
         onToggleRight={() => setRightCollapsed(v => !v)}
+      />
+
+      {/* Workflow context bar */}
+      <WorkflowContextBar
+        stage="Distribution"
+        stageColor="#F59E0B"
+        responsible={{ name: 'Sarah Chen', initials: 'SC', color: '#F59E0B' }}
+        completion={DISTRIBUTION_PROJECT.overallReadiness}
+        blockedCount={DISTRIBUTION_PROJECT.draftCount}
+        aiActive
+        aiAgentName="PublishBot"
+        decisionsLogged={PLATFORM_ADAPTATIONS.reduce((sum, p) => sum + p.recommendations.length, 0)}
+        sourcesVerified={PLATFORM_ADAPTATIONS.filter(p => p.readinessScore >= 80).length}
+        sourcesTotal={DISTRIBUTION_PROJECT.totalPlatforms}
+        scenesMapped={DISTRIBUTION_PROJECT.publishedCount}
+        scenesTotal={DISTRIBUTION_PROJECT.totalPlatforms}
+        approvalsApproved={DISTRIBUTION_PROJECT.approvedCount + DISTRIBUTION_PROJECT.publishedCount}
+        approvalsTotal={DISTRIBUTION_PROJECT.totalPlatforms}
       />
 
       {/* ── Desktop three-column layout ── */}
@@ -346,6 +366,33 @@ export const DistributionRoom: React.FC<DistributionRoomProps> = ({ onBack }) =>
           </AnimatePresence>
         </div>
       </div>
+
+      {/* ── Continue CTA (desktop) ── */}
+      {onContinue && (
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-between
+          px-6 py-3 border-t border-white/[0.05] bg-[#07070A]/90 backdrop-blur-sm">
+          <p className="text-[11px] font-mono text-slate-600">
+            {DISTRIBUTION_PROJECT.approvedCount + DISTRIBUTION_PROJECT.publishedCount}/{DISTRIBUTION_PROJECT.totalPlatforms} platforms ready ·{' '}
+            {DISTRIBUTION_PROJECT.overallReadiness}% readiness
+          </p>
+          <motion.button
+            type="button"
+            onClick={onContinue}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.15 }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-[13px] font-semibold text-white
+              bg-gradient-to-r from-[#7C3AED] to-[#9D6CFF]
+              border border-[#8B5CF6]/30 shadow-[0_4px_16px_rgba(124,58,237,0.3)]
+              hover:shadow-[0_4px_22px_rgba(139,92,246,0.45)]
+              transition-all duration-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            Continue to Analytics
+          </motion.button>
+        </div>
+      )}
     </div>
   );
 };

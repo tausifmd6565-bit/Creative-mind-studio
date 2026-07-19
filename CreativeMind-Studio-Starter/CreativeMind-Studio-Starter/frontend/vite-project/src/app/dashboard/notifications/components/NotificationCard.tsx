@@ -6,14 +6,15 @@
  * Animated entrance + read-state transition via Framer Motion.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2, AtSign, ClipboardCheck, ShieldCheck,
   AlertTriangle, Bot, Clock, MessageSquare, Radio,
-  Circle, Trash2, ExternalLink, MoreHorizontal, Check,
+  Trash2, ExternalLink, Check,
 } from 'lucide-react';
 import type { Notification, NotificationCategory, NotificationPriority } from '../types';
+import { sanitizeText } from '../../../../lib/security/sanitize';
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -54,15 +55,21 @@ interface NotificationCardProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export const NotificationCard: React.FC<NotificationCardProps> = ({
+export const NotificationCard: React.FC<NotificationCardProps> = React.memo(({
   notification,
   onMarkRead,
   onDelete,
   index,
 }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
   const { Icon, iconBg, iconColor, label } = CATEGORY_CONFIG[notification.category];
   const priority = PRIORITY_CONFIG[notification.priority];
+
+  // Sanitize all user-provided / server-provided text before rendering.
+  // This prevents XSS if notification content ever comes from the backend.
+  const safeTitle       = useMemo(() => sanitizeText(notification.title),       [notification.title]);
+  const safeDescription = useMemo(() => sanitizeText(notification.description), [notification.description]);
+  const safeProjectName = useMemo(() => sanitizeText(notification.projectName), [notification.projectName]);
+  const safeActorName   = useMemo(() => sanitizeText(notification.actor.name),  [notification.actor.name]);
 
   return (
     <motion.div
@@ -119,12 +126,12 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
         {/* Row 2: title */}
         <h4 className={`text-[13.5px] font-display font-semibold leading-snug mb-1 transition-colors duration-200
           ${notification.isRead ? 'text-slate-300' : 'text-slate-100'}`}>
-          {notification.title}
+          {safeTitle}
         </h4>
 
         {/* Row 3: description */}
         <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-          {notification.description}
+          {safeDescription}
         </p>
 
         {/* Row 4: project badge + actor + meta chips */}
@@ -132,7 +139,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
           {/* Project badge */}
           <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-slate-400 bg-white/[0.05] border border-white/[0.08] rounded-md px-2 py-0.5">
             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: notification.projectColor }} />
-            {notification.projectName}
+            {safeProjectName}
           </span>
 
           {/* Actor */}
@@ -141,55 +148,57 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
               className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center text-white flex-shrink-0"
               style={{ backgroundColor: notification.actor.avatarColor }}
             >
-              {notification.actor.avatar.slice(0, 2)}
+              {sanitizeText(notification.actor.avatar).slice(0, 2)}
             </span>
-            {notification.actor.name}
+            {safeActorName}
           </span>
 
-          {/* Meta chips (first 2 only) */}
+          {/* Meta chips (first 2 only) — values sanitized before render */}
           {notification.meta && Object.entries(notification.meta).slice(0, 2).map(([key, val]) => (
             <span key={key} className="text-[10px] font-mono text-slate-600 bg-white/[0.03] border border-white/[0.05] rounded px-1.5 py-0.5">
-              {val}
+              {sanitizeText(String(val))}
             </span>
           ))}
         </div>
       </div>
 
       {/* ── Actions (revealed on hover) ── */}
-      <AnimatePresence>
-        {!menuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-3 right-3 hidden group-hover:flex items-center gap-1"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="absolute bottom-3 right-3 hidden group-hover:flex items-center gap-1"
+      >
+        {!notification.isRead && (
+          <button
+            type="button"
+            onClick={() => onMarkRead(notification.id)}
+            aria-label="Mark as read"
+            title="Mark as read"
+            className="w-7 h-7 rounded-lg bg-white/[0.06] hover:bg-emerald-500/20 border border-white/[0.07] hover:border-emerald-500/30 flex items-center justify-center text-slate-500 hover:text-emerald-400 transition-colors duration-150"
           >
-            {!notification.isRead && (
-              <button
-                onClick={() => onMarkRead(notification.id)}
-                title="Mark as read"
-                className="w-7 h-7 rounded-lg bg-white/[0.06] hover:bg-emerald-500/20 border border-white/[0.07] hover:border-emerald-500/30 flex items-center justify-center text-slate-500 hover:text-emerald-400 transition-colors duration-150"
-              >
-                <Check className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <button
-              onClick={() => {}}
-              title="Open project"
-              className="w-7 h-7 rounded-lg bg-white/[0.06] hover:bg-brand-purple/20 border border-white/[0.07] hover:border-brand-purple/30 flex items-center justify-center text-slate-500 hover:text-brand-electric transition-colors duration-150"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onDelete(notification.id)}
-              title="Delete"
-              className="w-7 h-7 rounded-lg bg-white/[0.06] hover:bg-rose-500/20 border border-white/[0.07] hover:border-rose-500/30 flex items-center justify-center text-slate-500 hover:text-rose-400 transition-colors duration-150"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </motion.div>
+            <Check className="w-3.5 h-3.5" />
+          </button>
         )}
-      </AnimatePresence>
+        <button
+          type="button"
+          onClick={() => {}}
+          aria-label="Open project"
+          title="Open project"
+          className="w-7 h-7 rounded-lg bg-white/[0.06] hover:bg-brand-purple/20 border border-white/[0.07] hover:border-brand-purple/30 flex items-center justify-center text-slate-500 hover:text-brand-electric transition-colors duration-150"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(notification.id)}
+          aria-label="Delete notification"
+          title="Delete"
+          className="w-7 h-7 rounded-lg bg-white/[0.06] hover:bg-rose-500/20 border border-white/[0.07] hover:border-rose-500/30 flex items-center justify-center text-slate-500 hover:text-rose-400 transition-colors duration-150"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </motion.div>
     </motion.div>
   );
-};
+});
+NotificationCard.displayName = 'NotificationCard';

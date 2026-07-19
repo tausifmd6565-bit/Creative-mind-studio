@@ -8,9 +8,16 @@
  *   CategoryPerfChart    — Radar-style bar for content categories
  *   HookPerfChart        — Horizontal bar for hook style performance
  *   AudienceSegmentsChart — Bar chart for age segments
+ *
+ * Performance notes:
+ *  - This file lives in the 'workspace-analytics' Vite chunk (code-split
+ *    from the main bundle).  Recharts is only loaded when the analytics
+ *    workspace is first navigated to.
+ *  - All chart components are wrapped in React.memo to prevent re-renders
+ *    when sibling panels update.
  */
 
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, ReferenceLine,
@@ -21,9 +28,24 @@ import { CustomChartTooltip, ChartCard, TimeRangeSelector } from './PerformanceS
 import { CHART_COLORS } from './analyticsConfig';
 import type { TimeRange } from '../types';
 
+// ─── Shared axis tick style ───────────────────────────────────────────────────
+// Extracted to avoid repeating the same object literal across every chart.
+
+const AXIS_TICK = {
+  fill: CHART_COLORS.axis,
+  fontSize: 10,
+  fontFamily: 'JetBrains Mono',
+} as const;
+
+const PLATFORM_AXIS_TICK = {
+  fill: '#CBD5E1',
+  fontSize: 11,
+  fontFamily: 'JetBrains Mono',
+} as const;
+
 // ─── Retention Curve Chart ────────────────────────────────────────────────────
 
-export const RetentionCurveChart: React.FC = () => {
+export const RetentionCurveChart: React.FC = memo(() => {
   const [hidePredicted, setHidePredicted] = useState(false);
   const [hideActual, setHideActual] = useState(false);
 
@@ -55,13 +77,13 @@ export const RetentionCurveChart: React.FC = () => {
           <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
           <XAxis
             dataKey="label"
-            tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+            tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
             interval={4}
           />
           <YAxis
-            tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+            tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
             domain={[20, 105]}
@@ -112,11 +134,12 @@ export const RetentionCurveChart: React.FC = () => {
       </div>
     </ChartCard>
   );
-};
+});
+RetentionCurveChart.displayName = 'RetentionCurveChart';
 
 // ─── CTR Over Time Chart ──────────────────────────────────────────────────────
 
-export const CtrOverTimeChart: React.FC = () => {
+export const CtrOverTimeChart: React.FC = memo(() => {
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
 
   return (
@@ -136,13 +159,13 @@ export const CtrOverTimeChart: React.FC = () => {
           <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
-            tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+            tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
             interval={2}
           />
           <YAxis
-            tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+            tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
             tickFormatter={(v: number) => `${v}%`}
@@ -162,13 +185,14 @@ export const CtrOverTimeChart: React.FC = () => {
       </ResponsiveContainer>
     </ChartCard>
   );
-};
+});
+CtrOverTimeChart.displayName = 'CtrOverTimeChart';
 
 // ─── Platform Performance Chart ───────────────────────────────────────────────
 
 const PLAT_COLORS = ['#FF0000', '#0A66C2', '#E1306C', '#000000', '#F59E0B', '#8940FA'];
 
-export const PlatformPerfChart: React.FC = () => (
+export const PlatformPerfChart: React.FC = memo(() => (
   <ChartCard
     title="Platform Performance"
     subtitle="Views and engagement rate across all distribution channels"
@@ -178,7 +202,7 @@ export const PlatformPerfChart: React.FC = () => (
         <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" horizontal={false} />
         <XAxis
           type="number"
-          tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : String(v)}
@@ -186,7 +210,7 @@ export const PlatformPerfChart: React.FC = () => (
         <YAxis
           type="category"
           dataKey="platform"
-          tick={{ fill: '#CBD5E1', fontSize: 11, fontFamily: 'JetBrains Mono' }}
+          tick={PLATFORM_AXIS_TICK}
           tickLine={false}
           axisLine={false}
           width={80}
@@ -195,18 +219,19 @@ export const PlatformPerfChart: React.FC = () => (
           content={<CustomChartTooltip valueFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(2)}M` : `${(v / 1000).toFixed(1)}K`} />}
         />
         <Bar dataKey="views" name="Views" radius={[0, 4, 4, 0]} animationDuration={800}>
-          {PLATFORM_DATA.map((_, i) => (
-            <Cell key={`cell-${i}`} fill={PLAT_COLORS[i % PLAT_COLORS.length]} fillOpacity={0.85} />
+          {PLATFORM_DATA.map((entry, i) => (
+            <Cell key={`plat-${entry.platform}`} fill={PLAT_COLORS[i % PLAT_COLORS.length]} fillOpacity={0.85} />
           ))}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
   </ChartCard>
-);
+));
+PlatformPerfChart.displayName = 'PlatformPerfChart';
 
 // ─── Category Performance Chart ───────────────────────────────────────────────
 
-export const CategoryPerfChart: React.FC = () => (
+export const CategoryPerfChart: React.FC = memo(() => (
   <ChartCard
     title="Content Category Performance"
     subtitle="Average views and retention by content category"
@@ -216,13 +241,13 @@ export const CategoryPerfChart: React.FC = () => (
         <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
         <XAxis
           dataKey="category"
-          tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono', angle: -30, textAnchor: 'end' }}
+          tick={{ ...AXIS_TICK, angle: -30, textAnchor: 'end' }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
           yAxisId="left"
-          tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => `${(v / 1_000_000).toFixed(1)}M`}
@@ -230,7 +255,7 @@ export const CategoryPerfChart: React.FC = () => (
         <YAxis
           yAxisId="right"
           orientation="right"
-          tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => `${v}%`}
@@ -254,11 +279,12 @@ export const CategoryPerfChart: React.FC = () => (
       </BarChart>
     </ResponsiveContainer>
   </ChartCard>
-);
+));
+CategoryPerfChart.displayName = 'CategoryPerfChart';
 
 // ─── Hook Performance Chart ───────────────────────────────────────────────────
 
-export const HookPerfChart: React.FC = () => (
+export const HookPerfChart: React.FC = memo(() => (
   <ChartCard
     title="Hook Style Performance"
     subtitle="30-second retention rate by hook style across all videos"
@@ -269,7 +295,7 @@ export const HookPerfChart: React.FC = () => (
         <XAxis
           type="number"
           domain={[0, 100]}
-          tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => `${v}%`}
@@ -277,27 +303,28 @@ export const HookPerfChart: React.FC = () => (
         <YAxis
           type="category"
           dataKey="hookStyle"
-          tick={{ fill: '#CBD5E1', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           width={120}
         />
         <Tooltip content={<CustomChartTooltip valueFormatter={(v) => `${v}%`} />} />
         <Bar dataKey="avgRetention30s" name="30s Retention" radius={[0, 4, 4, 0]} animationDuration={800}>
-          {HOOK_DATA.map((entry, i) => {
-            const pct = entry.avgRetention30s;
-            const fill = pct >= 85 ? '#10B981' : pct >= 75 ? '#8B5CF6' : pct >= 65 ? '#3B82F6' : '#F59E0B';
-            return <Cell key={i} fill={fill} fillOpacity={0.85} />;
-          })}
+        {HOOK_DATA.map((entry) => {
+          const pct = entry.avgRetention30s;
+          const fill = pct >= 85 ? '#10B981' : pct >= 75 ? '#8B5CF6' : pct >= 65 ? '#3B82F6' : '#F59E0B';
+          return <Cell key={entry.hookStyle} fill={fill} fillOpacity={0.85} />;
+        })}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
   </ChartCard>
-);
+));
+HookPerfChart.displayName = 'HookPerfChart';
 
 // ─── Audience Segments Chart ──────────────────────────────────────────────────
 
-export const AudienceSegmentsChart: React.FC = () => (
+export const AudienceSegmentsChart: React.FC = memo(() => (
   <ChartCard
     title="Audience Age Segments"
     subtitle="Viewership distribution and avg watch time by age group"
@@ -307,13 +334,13 @@ export const AudienceSegmentsChart: React.FC = () => (
         <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
         <XAxis
           dataKey="age"
-          tick={{ fill: '#CBD5E1', fontSize: 11, fontFamily: 'JetBrains Mono' }}
+          tick={PLATFORM_AXIS_TICK}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
           yAxisId="left"
-          tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => `${v}%`}
@@ -321,7 +348,7 @@ export const AudienceSegmentsChart: React.FC = () => (
         <YAxis
           yAxisId="right"
           orientation="right"
-          tick={{ fill: CHART_COLORS.axis, fontSize: 10, fontFamily: 'JetBrains Mono' }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => `${v}m`}
@@ -341,4 +368,5 @@ export const AudienceSegmentsChart: React.FC = () => (
       </BarChart>
     </ResponsiveContainer>
   </ChartCard>
-);
+));
+AudienceSegmentsChart.displayName = 'AudienceSegmentsChart';

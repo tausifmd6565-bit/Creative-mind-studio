@@ -1,8 +1,14 @@
 /**
  * ReviewQueue.tsx — Center Panel: Review Queue & Approval Cards
+ *
+ * Performance:
+ *  - ReviewCard is wrapped in React.memo — rerenders only when its own props change.
+ *  - Sort + filter pipeline is memoised.
+ *  - Search is debounced 250ms before filtering.
  */
 
-import React, { useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
+import { useDebounce } from '../../../../../../lib/performance';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Filter, CheckCircle2, MessageSquare,
@@ -60,18 +66,20 @@ interface ReviewCardProps {
   index: number;
 }
 
-const ReviewCard: React.FC<ReviewCardProps> = ({ item, isSelected, onSelect, index }) => {
+// Stable colour map — defined once outside the component so it's not re-created on every render.
+const ACCENT_COLORS: Record<ReviewStatus, string> = {
+  blocked:             '#EF4444',
+  'changes-requested': '#F59E0B',
+  'in-review':         '#06B6D4',
+  pending:             '#94A3B8',
+  approved:            '#10B981',
+};
+
+const ReviewCard: React.FC<ReviewCardProps> = memo(({ item, isSelected, onSelect, index }) => {
   const [resolving, setResolving] = useState(false);
   const [resolved, setResolved] = useState(false);
 
-  const accentColors: Record<ReviewStatus, string> = {
-    blocked:             '#EF4444',
-    'changes-requested': '#F59E0B',
-    'in-review':         '#06B6D4',
-    pending:             '#94A3B8',
-    approved:            '#10B981',
-  };
-  const accent = accentColors[item.status];
+  const accent = ACCENT_COLORS[item.status];
 
   const handleResolve = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -166,12 +174,14 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ item, isSelected, onSelect, ind
             </motion.button>
           )}
           <button
+            type="button"
             onClick={e => e.stopPropagation()}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold text-[#94A3B8] bg-white/4 border border-white/8 hover:text-[#F8FAFC] hover:bg-white/6 transition-colors"
           >
             <MessageSquare size={10} /> Comment
           </button>
           <button
+            type="button"
             onClick={e => e.stopPropagation()}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold text-[#94A3B8] bg-white/4 border border-white/8 hover:text-[#F8FAFC] hover:bg-white/6 transition-colors"
           >
@@ -202,7 +212,8 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ item, isSelected, onSelect, ind
       </AnimatePresence>
     </motion.div>
   );
-};
+});
+ReviewCard.displayName = 'ReviewCard';
 
 // ─── Main ReviewQueue ─────────────────────────────────────────────────────────
 
@@ -213,31 +224,38 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | 'all'>('all');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter
-  const filtered = items
-    .filter(item => {
-      if (activeCategoryId && item.categoryId !== activeCategoryId) return false;
-      if (statusFilter !== 'all' && item.status !== statusFilter) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        return (
-          item.comment.toLowerCase().includes(q) ||
-          item.reviewerName.toLowerCase().includes(q) ||
-          item.linkedScene.toLowerCase().includes(q) ||
-          item.linkedClaim.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      // Sort: status priority, then severity
-      const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-      if (statusDiff !== 0) return statusDiff;
-      return SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
-    });
+  // Debounce search so filter pipeline doesn't re-run on every keystroke
+  const debouncedSearch = useDebounce(search, 250);
 
-  const blockedCount = filtered.filter(i => i.status === 'blocked').length;
-  const changesCount = filtered.filter(i => i.status === 'changes-requested').length;
+  // Memoised filter + sort pipeline
+  const filtered = useMemo(() => {
+    const q = debouncedSearch.toLowerCase();
+    return items
+      .filter(item => {
+        if (activeCategoryId && item.categoryId !== activeCategoryId) return false;
+        if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+        if (q) {
+          return (
+            item.comment.toLowerCase().includes(q) ||
+            item.reviewerName.toLowerCase().includes(q) ||
+            item.linkedScene.toLowerCase().includes(q) ||
+            item.linkedClaim.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        // Sort: status priority, then severity
+        const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        return SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
+      });
+  }, [items, activeCategoryId, statusFilter, debouncedSearch]);
+
+  const { blockedCount, changesCount } = useMemo(() => ({
+    blockedCount: filtered.filter(i => i.status === 'blocked').length,
+    changesCount: filtered.filter(i => i.status === 'changes-requested').length,
+  }), [filtered]);
 
   return (
     <div className="h-full flex flex-col bg-[#07070A]">
@@ -255,6 +273,8 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
             </p>
           </div>
           <button
+            type="button"
+            aria-expanded={showFilters}
             onClick={() => setShowFilters(v => !v)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#94A3B8] bg-white/4 border border-white/8 hover:text-[#F8FAFC] hover:bg-white/6 transition-colors"
           >
@@ -268,7 +288,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
 
         {/* Search */}
         <div className="relative mb-2">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" aria-hidden="true" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}

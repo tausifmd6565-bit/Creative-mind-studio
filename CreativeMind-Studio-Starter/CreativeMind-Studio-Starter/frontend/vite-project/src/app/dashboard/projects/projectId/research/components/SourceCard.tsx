@@ -3,6 +3,7 @@
  *
  * Includes: source type badge, verification status, confidence / freshness
  * bars, assigned researcher, quotation, and quick-action buttons.
+ * Enhanced with HoverPreviewTrigger and CopyButton micro-interactions.
  */
 
 import React, { useState } from 'react';
@@ -34,6 +35,9 @@ import type {
   SourceTier,
   VerificationStatus,
 } from '../types';
+import { HoverPreviewTrigger, SourcePreviewCard } from '../../../../../../components/micro/HoverPreview';
+import { CopyButton } from '../../../../../../components/micro/CopyButton';
+import { sanitizeText, sanitizeUrl } from '../../../../../../lib/security/sanitize';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -122,7 +126,7 @@ interface SourceCardProps {
   onSelect?: (id: string) => void;
 }
 
-export const SourceCardItem: React.FC<SourceCardProps> = ({
+export const SourceCardItem: React.FC<SourceCardProps> = React.memo(({
   source,
   isSelected = false,
   onSelect,
@@ -131,7 +135,23 @@ export const SourceCardItem: React.FC<SourceCardProps> = ({
   const typeCfg  = SOURCE_TYPE_CFG[source.sourceType];
   const verifCfg = VERIFICATION_CFG[source.verificationStatus];
 
+  const previewData = {
+    title: source.title,
+    publisher: source.publisher,
+    date: source.publicationDate,
+    type: typeCfg.label,
+    typeColor: '#8B5CF6',
+    quotation: source.relevantQuotation,
+    confidenceScore: source.confidenceScore,
+    freshnessScore: source.freshnessScore,
+    url: source.url,
+  };
+
   return (
+    <HoverPreviewTrigger
+      preview={<SourcePreviewCard data={previewData} />}
+      delay={400}
+    >
     <motion.article
       layout
       initial={{ opacity: 0, y: 14 }}
@@ -167,7 +187,7 @@ export const SourceCardItem: React.FC<SourceCardProps> = ({
 
         {/* Row 2: title */}
         <h3 className="font-display font-semibold text-[13px] text-slate-100 leading-snug">
-          {source.title}
+          {sanitizeText(source.title)}
         </h3>
 
         {/* Row 3: publisher / author / date */}
@@ -179,9 +199,9 @@ export const SourceCardItem: React.FC<SourceCardProps> = ({
             ...(source.reportPage
               ? [{ icon: <FileText className="w-3 h-3" />, value: `${source.reportPage}` }]
               : []),
-          ].map((row, i) => (
-            <div key={i} className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 truncate">
-              <span className="text-slate-700 flex-shrink-0">{row.icon}</span>
+          ].map((row) => (
+            <div key={row.value} className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 truncate">
+              <span className="text-slate-700 flex-shrink-0" aria-hidden="true">{row.icon}</span>
               <span className="truncate">{row.value}</span>
             </div>
           ))}
@@ -192,7 +212,7 @@ export const SourceCardItem: React.FC<SourceCardProps> = ({
           bg-white/[0.03] border border-white/[0.06]">
           <Quote className="w-3.5 h-3.5 text-slate-600 flex-shrink-0 mt-0.5" />
           <p className="text-[11px] text-slate-400 leading-relaxed italic line-clamp-3">
-            "{source.relevantQuotation}"
+            &ldquo;{sanitizeText(source.relevantQuotation)}&rdquo;
           </p>
         </div>
 
@@ -212,7 +232,7 @@ export const SourceCardItem: React.FC<SourceCardProps> = ({
           />
         </div>
 
-        {/* Row 6: researcher + URL */}
+        {/* Row 6: researcher + URL + copy */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/[0.05]">
           <div className="flex items-center gap-1.5 text-[10px] font-mono">
             {source.assignedResearcher.isAi
@@ -226,17 +246,26 @@ export const SourceCardItem: React.FC<SourceCardProps> = ({
               {source.assignedResearcher.name}
             </span>
           </div>
-          <a
-            href={source.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1 text-[10px] font-mono text-slate-600
-              hover:text-[#8B5CF6] transition-colors"
-          >
-            <ExternalLink className="w-3 h-3" />
-            <span>Source</span>
-          </a>
+          <div className="flex items-center gap-1">
+            {/* Copy URL button */}
+            <CopyButton
+              text={source.url}
+              size="sm"
+              ariaLabel="Copy source URL"
+              className="pointer-events-auto"
+            />
+            <a
+              href={sanitizeUrl(source.url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="flex items-center gap-1 text-[10px] font-mono text-slate-600
+                hover:text-[#8B5CF6] transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" />
+              <span>Source</span>
+            </a>
+          </div>
         </div>
 
         {/* Expand toggle for notes + refs */}
@@ -283,8 +312,10 @@ export const SourceCardItem: React.FC<SourceCardProps> = ({
         )}
       </div>
     </motion.article>
+    </HoverPreviewTrigger>
   );
-};
+});
+SourceCardItem.displayName = 'SourceCardItem';
 
 // ─── Source grid ──────────────────────────────────────────────────────────────
 
@@ -294,7 +325,7 @@ interface SourceGridProps {
   onSelectSource: (id: string) => void;
 }
 
-export const SourceGrid: React.FC<SourceGridProps> = ({
+export const SourceGrid: React.FC<SourceGridProps> = React.memo(({
   sources,
   selectedSourceId,
   onSelectSource,
@@ -309,7 +340,8 @@ export const SourceGrid: React.FC<SourceGridProps> = ({
       />
     ))}
   </div>
-);
+));
+SourceGrid.displayName = 'SourceGrid';
 
 // ─── Filter bar for sources ───────────────────────────────────────────────────
 

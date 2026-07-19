@@ -1,6 +1,7 @@
 /**
  * AssetCard.tsx — Individual asset card with grid, list, and board variants.
  * Shows thumbnail, status badge, rights-risk indicator, hover actions.
+ * Enhanced with AssetHoverPreview and ContextMenu micro-interactions.
  *
  * ⚠️  SIMULATED DATA — Not live. Used for UI development only.
  */
@@ -19,8 +20,15 @@ import {
   DollarSign,
   Link2,
   Eye,
+  Copy,
+  Trash2,
+  Tag,
+  Share2,
 } from 'lucide-react';
 import type { AssetCard as AssetCardType, AssetStatus, RightsRisk } from '../types';
+import { HoverPreviewTrigger, AssetPreviewCard } from '../../../../../../components/micro/HoverPreview';
+import { ContextMenu } from '../../../../../../components/micro/ContextMenu';
+import { useContextMenu } from '../../../../../../hooks/useMicroInteractions';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -64,7 +72,7 @@ interface AssetCardProps {
   viewMode: 'grid' | 'list' | 'board' | 'scene-linked' | 'rights-risk';
 }
 
-export const AssetCard: React.FC<AssetCardProps> = ({
+export const AssetCard: React.FC<AssetCardProps> = React.memo(({
   asset,
   isSelected,
   onSelect,
@@ -73,13 +81,42 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   const status = STATUS_CFG[asset.status];
   const risk = RISK_CFG[asset.rightsRisk];
 
+  const { position: ctxPos, open: openCtx, close: closeCtx } = useContextMenu();
+
+  const contextItems = [
+    { id: 'view',      label: 'Preview Asset',  icon: <Eye className="w-3.5 h-3.5" />,   action: onSelect                    },
+    { id: 'copy',      label: 'Copy Title',      icon: <Copy className="w-3.5 h-3.5" />,  action: () => navigator.clipboard?.writeText(asset.title) },
+    { id: 'sep1',      separator: true as const                                                                                },
+    { id: 'tag',       label: 'Add Tag',         icon: <Tag className="w-3.5 h-3.5" />                                        },
+    { id: 'share',     label: 'Share Asset',     icon: <Share2 className="w-3.5 h-3.5" />                                     },
+    { id: 'download',  label: 'Download',        icon: <Download className="w-3.5 h-3.5" />                                   },
+    { id: 'sep2',      separator: true as const                                                                                },
+    { id: 'remove',    label: 'Remove',          icon: <Trash2 className="w-3.5 h-3.5" />, danger: true                       },
+  ];
+
+  const previewData = {
+    title: asset.title,
+    thumbnailGradient: asset.thumbnailGradient,
+    thumbnailIcon: asset.thumbnailIcon,
+    type: (asset.category as string).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+    source: asset.source,
+    rightsRisk: asset.rightsRisk,
+    durationLabel: asset.durationSec !== undefined ? fmtDuration(asset.durationSec) : undefined,
+    resolution: asset.resolution,
+  };
+
   if (viewMode === 'list') {
     return <AssetListRow asset={asset} isSelected={isSelected} onSelect={onSelect} status={status} risk={risk} />;
   }
 
   // Grid / board / scene-linked / rights-risk all use the grid card
   return (
-    <motion.div
+    <>
+      <HoverPreviewTrigger
+        preview={<AssetPreviewCard data={previewData} />}
+        delay={350}
+      >
+      <motion.div
       layout
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -87,6 +124,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
       transition={{ duration: 0.2, ease: EASE }}
       whileHover={{ y: -2 }}
       onClick={onSelect}
+      onContextMenu={openCtx}
       className={`group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer
         border transition-all duration-200
         ${isSelected
@@ -228,9 +266,17 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981] drop-shadow-sm" />
         </div>
       )}
-    </motion.div>
+      </motion.div>
+      </HoverPreviewTrigger>
+      <ContextMenu
+        position={ctxPos}
+        onClose={closeCtx}
+        items={contextItems}
+      />
+    </>
   );
-};
+});
+AssetCard.displayName = 'AssetCard';
 
 // ─── List row ─────────────────────────────────────────────────────────────────
 

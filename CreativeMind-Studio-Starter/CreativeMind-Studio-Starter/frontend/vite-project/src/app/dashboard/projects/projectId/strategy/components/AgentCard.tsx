@@ -2,14 +2,12 @@
  * AgentCard.tsx — Premium AI agent card for the Strategy War Room.
  *
  * Shows: Avatar · Name · Role · Status · Confidence · Contribution · Agreement · Focus
+ * Enhanced with AgentAvatarPulse for animated working states.
  */
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bot,
-  Cpu,
-  Zap,
   Clock,
   CheckCircle2,
   Eye,
@@ -17,8 +15,12 @@ import {
   ThumbsDown,
   Minus,
   AlertTriangle,
+  Zap,
+  Cpu,
 } from 'lucide-react';
 import type { StrategyAgent, AgentStatus } from '../types';
+import { AgentAvatarPulse } from '../../../../../../components/micro/AgentAvatarPulse';
+import type { AgentStatus as AvatarStatus } from '../../../../../../components/micro/AgentAvatarPulse';
 
 // ─── Shared ease ─────────────────────────────────────────────────────────────
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -61,6 +63,19 @@ const AGREEMENT_CFG = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+// ─── Status → avatar status mapping ──────────────────────────────────────────
+
+function toAvatarStatus(s: AgentStatus): AvatarStatus {
+  if (s === 'thinking')   return 'thinking';
+  if (s === 'responding') return 'working';
+  if (s === 'reviewing')  return 'working';
+  if (s === 'completed')  return 'done';
+  if (s === 'waiting')    return 'waiting';
+  return 'idle';
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 interface AgentCardProps {
   agent: StrategyAgent;
   index: number;
@@ -68,7 +83,7 @@ interface AgentCardProps {
   compact?: boolean;
 }
 
-export const AgentCard: React.FC<AgentCardProps> = ({
+export const AgentCard: React.FC<AgentCardProps> = React.memo(({
   agent,
   index,
   isActive = false,
@@ -106,30 +121,13 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {/* Header row */}
       <div className="flex items-start gap-3">
-        {/* Avatar */}
-        <div className="relative flex-shrink-0">
-          <div
-            className={`${compact ? 'w-9 h-9 rounded-[10px]' : 'w-11 h-11 rounded-xl'} flex items-center justify-center border`}
-            style={{
-              background: `linear-gradient(135deg, ${agent.color}30, ${agent.color}10)`,
-              borderColor: `${agent.color}${isLive ? '55' : '35'}`,
-              borderStyle: isLive ? 'dashed' : 'solid',
-              color: agent.color,
-            }}
-          >
-            {isLive ? (
-              <Bot className={compact ? 'w-4 h-4' : 'w-5 h-5'} />
-            ) : (
-              <span className={`font-bold font-mono ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
-                {agent.initials}
-              </span>
-            )}
-          </div>
-          {/* Status dot */}
-          <span
-            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0B0B12] ${status.dotClass}`}
-          />
-        </div>
+        {/* Avatar — uses AgentAvatarPulse for animated working states */}
+        <AgentAvatarPulse
+          color={agent.color}
+          status={toAvatarStatus(agent.status)}
+          size={compact ? 36 : 44}
+          initials={agent.initials}
+        />
 
         {/* Name / role */}
         <div className="flex-1 min-w-0">
@@ -207,4 +205,5 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       )}
     </motion.div>
   );
-};
+});
+AgentCard.displayName = 'AgentCard';

@@ -52,6 +52,16 @@
   --shadow-sidebar:      4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
+/* ── Micro-interaction timing tokens ── */
+@theme {
+  --duration-instant:  80ms;
+  --duration-fast:    150ms;
+  --duration-normal:  200ms;
+  --duration-slow:    300ms;
+  --ease-snappy: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-gentle: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @layer base {
   *,
   *::before,
@@ -77,6 +87,18 @@
     height: 100%;
   }
 
+  /* ── prefers-reduced-motion — disable CSS transitions globally ── */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* Scrollbar customization */
   ::-webkit-scrollbar {
     width: 6px;
@@ -99,16 +121,7 @@
     outline-offset: 2px;
   }
 
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
+  /* (Reduced motion handled above in the @layer base block) */
 }
 
 @layer utilities {

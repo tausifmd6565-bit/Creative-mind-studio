@@ -21,8 +21,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, BarChart3, Dna, Sparkles, Users,
   FileDown, Activity, GitCompare, ChevronLeft, ChevronRight,
-  BookOpen,
+  BookOpen, CheckCircle2,
 } from 'lucide-react';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
 import { PERFORMANCE_PROJECT } from './mockData';
 import { KpiCardsRow } from './components/KpiCardsRow';
 import {
@@ -71,10 +72,11 @@ interface WorkspaceHeaderProps {
   onBack?: () => void;
   rightCollapsed: boolean;
   onToggleRight: () => void;
+  onToggleDna: () => void;
 }
 
 const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
-  onBack, rightCollapsed, onToggleRight,
+  onBack, rightCollapsed, onToggleRight, onToggleDna,
 }) => {
   const score = PERFORMANCE_PROJECT.overallScore;
   const scoreColor = score >= 80 ? '#10B981' : score >= 60 ? '#8B5CF6' : '#F59E0B';
@@ -134,14 +136,28 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         >
           Post-Launch
         </span>
+        {/* Creator DNA shortcut — final workflow stage */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={onToggleDna}
+          title="View Creator DNA"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+            bg-[#8B5CF6]/15 text-[#9D6CFF] border border-[#8B5CF6]/30
+            hover:bg-[#8B5CF6]/25 hover:border-[#8B5CF6]/50
+            transition-all text-[11px] font-mono font-semibold"
+        >
+          <Dna className="w-3.5 h-3.5" />
+          Creator DNA
+          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+        </motion.button>
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onToggleRight}
           className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/[0.07] text-slate-500 hover:text-slate-200 hover:border-white/[0.14] transition-all text-[11px] font-mono"
         >
           {rightCollapsed
-            ? <><ChevronLeft className="w-3.5 h-3.5" />DNA & AI</>
-            : <>DNA & AI<ChevronRight className="w-3.5 h-3.5" /></>
+            ? <><ChevronLeft className="w-3.5 h-3.5" />AI Insights</>
+            : <>AI Insights<ChevronRight className="w-3.5 h-3.5" /></>
           }
         </motion.button>
       </div>
@@ -271,6 +287,25 @@ export const PerformanceWorkspace: React.FC<PerformanceWorkspaceProps> = ({ onBa
         onBack={onBack}
         rightCollapsed={rightCollapsed}
         onToggleRight={() => setRightCollapsed(v => !v)}
+        onToggleDna={() => { setRightTab('dna'); setRightCollapsed(false); }}
+      />
+
+      {/* Workflow context bar */}
+      <WorkflowContextBar
+        stage="Analytics"
+        stageColor="#10B981"
+        responsible={{ name: 'James Park', initials: 'JP', color: '#10B981' }}
+        completion={PERFORMANCE_PROJECT.overallScore}
+        blockedCount={PERFORMANCE_PROJECT.predictedScore - PERFORMANCE_PROJECT.overallScore > 15 ? 1 : 0}
+        aiActive
+        aiAgentName="InsightBot"
+        decisionsLogged={12}
+        sourcesVerified={PERFORMANCE_PROJECT.overallScore >= 70 ? 9 : 5}
+        sourcesTotal={9}
+        scenesMapped={Math.round(PERFORMANCE_PROJECT.overallScore / 10)}
+        scenesTotal={10}
+        approvalsApproved={Math.round(PERFORMANCE_PROJECT.overallScore / 10)}
+        approvalsTotal={10}
       />
 
       {/* ── Desktop layout ── */}

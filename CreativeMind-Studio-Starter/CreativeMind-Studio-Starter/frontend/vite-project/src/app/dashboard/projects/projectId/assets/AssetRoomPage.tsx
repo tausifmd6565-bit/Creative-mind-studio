@@ -9,7 +9,8 @@
  * ⚠️  SIMULATED DATA — Not live. Used for UI development only.
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useDeferredValue, useCallback } from 'react';
+import { useDebounce } from '../../../../../lib/performance';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FolderOpen,
@@ -23,6 +24,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLayout } from '../../../../../lib/useLayout';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
 import { AssetFilterPanel } from './components/AssetFilterPanel';
 import { AssetLibrary } from './components/AssetLibrary';
 import { AssetInspector } from './components/AssetInspector';
@@ -162,8 +164,16 @@ export const AssetRoomPage: React.FC<AssetRoomPageProps> = ({ onBack, onContinue
     });
   }, [setBreadcrumbs, setPrimaryAction, setActiveNavId, onBack, onContinue]);
 
-  // Derived state
-  const filteredAssets = useMemo(() => applyFilters(assets, filters), [assets, filters]);
+  // Debounce the search portion of filters to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(filters.search, 250);
+  const deferredSearch  = useDeferredValue(debouncedSearch);
+  const effectiveFilters = useMemo(
+    () => ({ ...filters, search: deferredSearch }),
+    [filters, deferredSearch],
+  );
+
+  // Derived state — only recomputes when effectiveFilters (debounced) changes
+  const filteredAssets = useMemo(() => applyFilters(assets, effectiveFilters), [assets, effectiveFilters]);
 
   const selectedAsset = useMemo(
     () => assets.find(a => a.id === selectedId) ?? null,
@@ -183,15 +193,15 @@ export const AssetRoomPage: React.FC<AssetRoomPageProps> = ({ onBack, onContinue
     pending: assets.filter(a => a.status === 'suggested' || a.status === 'shortlisted').length,
   }), [assets]);
 
-  // Handlers
-  const handleStatusChange = (id: string, status: AssetStatus) => {
+  // Handlers — stable with useCallback to prevent child re-renders
+  const handleStatusChange = useCallback((id: string, status: AssetStatus) => {
     setAssets(prev => prev.map(a => a.id === id ? { ...a, status } : a));
-  };
+  }, []);
 
-  const handleSelectAsset = (id: string) => {
+  const handleSelectAsset = useCallback((id: string) => {
     setSelectedId(prev => (prev === id ? null : id));
     setRightTab('inspector');
-  };
+  }, []);
 
   const handleFilesDropped = (files: File[]) => {
     const newUploads = files.map(f => makeMockUpload(f.name));
@@ -313,6 +323,24 @@ export const AssetRoomPage: React.FC<AssetRoomPageProps> = ({ onBack, onContinue
           Usage Timeline
         </button>
       </div>
+
+      {/* ── Workflow context bar ── */}
+      <WorkflowContextBar
+        stage="Asset Room"
+        stageColor="#F59E0B"
+        responsible={{ name: 'Leon Wu', initials: 'LW', color: '#F59E0B' }}
+        completion={Math.round((stats.approved / Math.max(stats.total, 1)) * 100)}
+        blockedCount={stats.highRisk}
+        aiActive={activeUploadCount > 0}
+        aiAgentName={activeUploadCount > 0 ? `${activeUploadCount} uploading` : 'RightsAuditor'}
+        decisionsLogged={MOCK_ASSET_ROOM.timeline.length}
+        sourcesVerified={assets.filter(a => a.rightsRisk === 'low').length}
+        sourcesTotal={assets.length}
+        scenesMapped={assets.filter(a => !!a.assignedSceneId).length}
+        scenesTotal={new Set(assets.map(a => a.assignedSceneId).filter(Boolean)).size + 3}
+        approvalsApproved={stats.approved}
+        approvalsTotal={stats.total}
+      />
 
       {/* Main 3-column area */}
       <div className="flex flex-1 overflow-hidden min-h-0">

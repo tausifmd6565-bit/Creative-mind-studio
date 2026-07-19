@@ -17,6 +17,7 @@ import {
   Video, List, Inspect, AlertTriangle, CheckCircle2,
   BarChart2
 } from 'lucide-react';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
 import { SCENES, PROJECT_META } from './mockData';
 import type { Scene } from './mockData';
 import { ScenesBin } from './components/ScenesBin';
@@ -27,6 +28,7 @@ import { ExportModal } from './components/ExportModal';
 
 interface VideoEditorWorkspaceProps {
   onBack?: () => void;
+  onContinue?: () => void;
 }
 
 type MobileTab = 'scenes' | 'timeline' | 'inspector';
@@ -248,7 +250,7 @@ const GuidanceDrawer: React.FC<GuidanceDrawerProps> = ({ isOpen, onClose }) => (
 
 // ─── Main Workspace ───────────────────────────────────────────────────────────
 
-export const VideoEditorWorkspace: React.FC<VideoEditorWorkspaceProps> = ({ onBack }) => {
+export const VideoEditorWorkspace: React.FC<VideoEditorWorkspaceProps> = ({ onBack, onContinue }) => {
   const [scenes, setScenes] = useState<Scene[]>(SCENES);
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(SCENES[0]?.id ?? null);
   const [exportOpen, setExportOpen] = useState(false);
@@ -263,6 +265,10 @@ export const VideoEditorWorkspace: React.FC<VideoEditorWorkspaceProps> = ({ onBa
     setScenes(reordered);
   }, []);
 
+  // Derive scene-to-asset mapping counts from live scene state
+  const scenesMappedCount = scenes.filter(s => s.linkedAssetsCount > 0).length;
+  const blockedScenesCount = scenes.filter(s => s.editingStatus === 'blocked').length;
+
   return (
     <div className="h-full flex flex-col bg-[#07070A] overflow-hidden">
       {/* Top header */}
@@ -275,6 +281,24 @@ export const VideoEditorWorkspace: React.FC<VideoEditorWorkspaceProps> = ({ onBa
         rightCollapsed={rightCollapsed}
         onToggleLeft={() => setLeftCollapsed(v => !v)}
         onToggleRight={() => setRightCollapsed(v => !v)}
+      />
+
+      {/* Workflow context bar */}
+      <WorkflowContextBar
+        stage="Video Editor"
+        stageColor="#8B5CF6"
+        responsible={{ name: 'Marcus Lee', initials: 'ML', color: '#8B5CF6' }}
+        completion={PROJECT_META.completionPercent}
+        blockedCount={blockedScenesCount}
+        aiActive
+        aiAgentName="EditBot"
+        decisionsLogged={SCENES.reduce((sum, s) => sum + s.warningCount, 0)}
+        sourcesVerified={SCENES.filter(s => s.assetReadiness === 'ready').length}
+        sourcesTotal={SCENES.length}
+        scenesMapped={scenesMappedCount}
+        scenesTotal={scenes.length}
+        approvalsApproved={SCENES.filter(s => s.editingStatus === 'approved').length}
+        approvalsTotal={SCENES.length}
       />
 
       {/* Three-panel layout (desktop) */}
@@ -434,6 +458,33 @@ export const VideoEditorWorkspace: React.FC<VideoEditorWorkspaceProps> = ({ onBa
 
       {/* Export Modal */}
       <ExportModal isOpen={exportOpen} onClose={() => setExportOpen(false)} />
+
+      {/* ── Continue CTA ── */}
+      {onContinue && (
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-between
+          px-6 py-3 border-t border-white/[0.05] bg-[#07070A]/90 backdrop-blur-sm">
+          <p className="text-[11px] font-mono text-slate-600">
+            {SCENES.filter(s => s.editingStatus === 'approved').length}/{SCENES.length} scenes approved ·{' '}
+            {blockedScenesCount > 0 ? `${blockedScenesCount} blocked` : 'all clear'}
+          </p>
+          <motion.button
+            type="button"
+            onClick={onContinue}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.15 }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-[13px] font-semibold text-white
+              bg-gradient-to-r from-[#7C3AED] to-[#9D6CFF]
+              border border-[#8B5CF6]/30 shadow-[0_4px_16px_rgba(124,58,237,0.3)]
+              hover:shadow-[0_4px_22px_rgba(139,92,246,0.45)]
+              transition-all duration-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+          >
+            <CheckCircle2 size={14} />
+            Continue to Review
+          </motion.button>
+        </div>
+      )}
     </div>
   );
 };

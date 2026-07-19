@@ -14,8 +14,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Download, ShieldCheck, CheckCircle2,
   XCircle, List, Eye, Table2, Activity, ChevronLeft, ChevronRight,
-  ClipboardList, Clock
+  ClipboardList, Clock, Radio,
 } from 'lucide-react';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
 import { REVIEW_CATEGORIES, REVIEW_ITEMS, REVIEW_PROJECT } from './mockData';
 import type { CategoryId } from './mockData';
 import { ReviewCategories } from './components/ReviewCategories';
@@ -27,6 +28,7 @@ import { ActivityTimeline } from './components/ActivityTimeline';
 
 interface ReviewApprovalRoomProps {
   onBack?: () => void;
+  onContinue?: () => void;
 }
 
 type CenterTab = 'queue' | 'checklist' | 'audit' | 'timeline';
@@ -160,7 +162,7 @@ const MOBILE_TABS: { id: MobileTab; label: string; icon: React.ElementType }[] =
 
 // ─── Main Room ────────────────────────────────────────────────────────────────
 
-export const ReviewApprovalRoom: React.FC<ReviewApprovalRoomProps> = ({ onBack }) => {
+export const ReviewApprovalRoom: React.FC<ReviewApprovalRoomProps> = ({ onBack, onContinue }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<CategoryId | null>(null);
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(REVIEW_ITEMS[0]?.id ?? null);
   const [centerTab, setCenterTab] = useState<CenterTab>('queue');
@@ -184,6 +186,24 @@ export const ReviewApprovalRoom: React.FC<ReviewApprovalRoomProps> = ({ onBack }
         rightCollapsed={rightCollapsed}
         onToggleLeft={() => setLeftCollapsed(v => !v)}
         onToggleRight={() => setRightCollapsed(v => !v)}
+      />
+
+      {/* Workflow context bar */}
+      <WorkflowContextBar
+        stage={REVIEW_PROJECT.stage}
+        stageColor="#7C3AED"
+        responsible={{ name: 'Sarah Chen', initials: 'SC', color: '#7C3AED' }}
+        completion={REVIEW_PROJECT.overallReadiness}
+        blockedCount={REVIEW_PROJECT.blockedCount}
+        aiActive
+        aiAgentName="ReviewBot"
+        decisionsLogged={REVIEW_CATEGORIES.length}
+        sourcesVerified={REVIEW_ITEMS.filter(r => r.status === 'approved').length}
+        sourcesTotal={REVIEW_ITEMS.length}
+        scenesMapped={new Set(REVIEW_ITEMS.map(r => r.linkedScene).filter(Boolean)).size}
+        scenesTotal={REVIEW_CATEGORIES.length}
+        approvalsApproved={REVIEW_PROJECT.approvedCount}
+        approvalsTotal={REVIEW_PROJECT.totalReviews}
       />
 
       {/* Desktop three-panel layout */}
@@ -388,6 +408,33 @@ export const ReviewApprovalRoom: React.FC<ReviewApprovalRoomProps> = ({ onBack }
           )}
         </AnimatePresence>
       </div>
+
+      {/* ── Continue CTA (desktop) ── */}
+      {onContinue && (
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-between
+          px-6 py-3 border-t border-white/[0.05] bg-[#07070A]/90 backdrop-blur-sm">
+          <p className="text-[11px] font-mono text-slate-600">
+            {REVIEW_PROJECT.approvedCount}/{REVIEW_PROJECT.totalReviews} approved ·{' '}
+            {REVIEW_PROJECT.overallReadiness}% ready
+          </p>
+          <motion.button
+            type="button"
+            onClick={onContinue}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.15 }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-[13px] font-semibold text-white
+              bg-gradient-to-r from-[#7C3AED] to-[#9D6CFF]
+              border border-[#8B5CF6]/30 shadow-[0_4px_16px_rgba(124,58,237,0.3)]
+              hover:shadow-[0_4px_22px_rgba(139,92,246,0.45)]
+              transition-all duration-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+          >
+            <Radio size={14} />
+            Continue to Distribution
+          </motion.button>
+        </div>
+      )}
 
       {/* Mobile tab bar */}
       <div className="flex lg:hidden border-t border-white/5 bg-[#0B0B12] flex-shrink-0">

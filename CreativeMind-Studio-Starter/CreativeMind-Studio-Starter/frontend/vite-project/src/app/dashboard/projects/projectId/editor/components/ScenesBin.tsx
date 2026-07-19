@@ -1,13 +1,16 @@
 /**
  * ScenesBin.tsx — Left Panel: Scenes & Media Bin
+ * Enhanced with SceneStatusBadge animated transitions + ContextMenu.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useDebounce } from '../../../../../../lib/performance';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Search, Filter, Plus, Film, Music, Volume2, Image,
   Cpu, AlertTriangle, CheckCircle2, XCircle, Sparkles,
-  ChevronDown, ChevronUp, GripVertical
+  ChevronDown, ChevronUp, GripVertical,
+  Copy, Trash2, Eye, Lock,
 } from 'lucide-react';
 import type { Scene } from '../mockData';
 import { MEDIA_BIN } from '../mockData';
@@ -15,6 +18,10 @@ import {
   EditingStatusBadge, AssetReadinessBadge, VisualTypeBadge,
   WarningCount, PacingDot, EditorAvatar, SectionHeader
 } from './EditorShared';
+import { SceneStatusTransition } from '../../../../../../components/micro/SceneStatusBadge';
+import type { SceneEditingStatus } from '../../../../../../components/micro/SceneStatusBadge';
+import { ContextMenu } from '../../../../../../components/micro/ContextMenu';
+import { useContextMenu } from '../../../../../../hooks/useMicroInteractions';
 
 interface ScenesBinProps {
   scenes: Scene[];
@@ -41,15 +48,28 @@ interface SceneCardProps {
   onSelect: () => void;
 }
 
-const SceneCard: React.FC<SceneCardProps> = ({ scene, isSelected, onSelect }) => {
+const SceneCard: React.FC<SceneCardProps> = React.memo(({ scene, isSelected, onSelect }) => {
   const border = isSelected ? 'border-[#8B5CF6]/60' : 'border-white/5 hover:border-white/10';
   const bg = isSelected ? 'bg-[#8B5CF6]/8' : 'bg-[#151521] hover:bg-[#1B1B2A]';
+  const { position: ctxPos, open: openCtx, close: closeCtx } = useContextMenu();
+
+  const contextItems = [
+    { id: 'view',      label: 'Open Scene',       icon: <Eye className="w-3.5 h-3.5" />,  action: onSelect                                                 },
+    { id: 'copy',      label: 'Duplicate Scene',  icon: <Copy className="w-3.5 h-3.5" />                                                                    },
+    { id: 'sep1',      separator: true as const                                                                                                              },
+    { id: 'lock',      label: 'Lock Scene',       icon: <Lock className="w-3.5 h-3.5" />                                                                    },
+    { id: 'sep2',      separator: true as const                                                                                                              },
+    { id: 'delete',    label: 'Delete Scene',     icon: <Trash2 className="w-3.5 h-3.5" />, danger: true                                                    },
+  ];
 
   return (
+    <>
+    <SceneStatusTransition status={scene.editingStatus as SceneEditingStatus}>
     <motion.div
       layout
       whileHover={{ y: -1, transition: { duration: 0.15 } }}
       onClick={onSelect}
+      onContextMenu={openCtx}
       className={`group relative rounded-xl border cursor-pointer transition-colors duration-150 p-3 ${border} ${bg}`}
     >
       {/* Drag handle */}
@@ -114,8 +134,16 @@ const SceneCard: React.FC<SceneCardProps> = ({ scene, isSelected, onSelect }) =>
         </div>
       </div>
     </motion.div>
+    </SceneStatusTransition>
+    <ContextMenu
+      position={ctxPos}
+      onClose={closeCtx}
+      items={contextItems}
+    />
+    </>
   );
-};
+});
+SceneCard.displayName = 'SceneCard';
 
 // ─── Media Bin Summary ────────────────────────────────────────────────────────
 
@@ -202,10 +230,16 @@ export const ScenesBin: React.FC<ScenesBinProps> = ({
   const [statusFilter, setStatusFilter] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
 
-  const filtered = scenes.filter(s => {
+  // Debounce search so filter doesn't run on every keystroke
+  const debouncedSearch = useDebounce(search, 200);
+
+  const handleToggleFilters = useCallback(() => setShowFilters(v => !v), []);
+
+  const filtered = useMemo(() => scenes.filter(s => {
+    const q = debouncedSearch.toLowerCase();
     const matchSearch =
-      s.title.toLowerCase().includes(search.toLowerCase()) ||
-      s.narrationSummary.toLowerCase().includes(search.toLowerCase());
+      s.title.toLowerCase().includes(q) ||
+      s.narrationSummary.toLowerCase().includes(q);
     const matchStatus =
       statusFilter === 'All' ||
       (statusFilter === 'Approved' && s.editingStatus === 'approved') ||
@@ -214,7 +248,7 @@ export const ScenesBin: React.FC<ScenesBinProps> = ({
       (statusFilter === 'Blocked' && s.editingStatus === 'blocked') ||
       (statusFilter === 'Not Started' && s.editingStatus === 'not-started');
     return matchSearch && matchStatus;
-  });
+  }), [scenes, debouncedSearch, statusFilter]);
 
   return (
     <div className="h-full flex flex-col bg-[#10101A]">
@@ -236,18 +270,19 @@ export const ScenesBin: React.FC<ScenesBinProps> = ({
 
         {/* Search */}
         <div className="relative mb-2">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" aria-hidden="true" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search scenes…"
+            aria-label="Search scenes"
             className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-[#0B0B12] border border-white/8 text-xs text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8B5CF6]/40 transition-colors"
           />
         </div>
 
         {/* Filter toggle */}
         <button
-          onClick={() => setShowFilters(v => !v)}
+          onClick={handleToggleFilters}
           className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
         >
           <Filter size={11} />

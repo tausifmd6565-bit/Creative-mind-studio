@@ -22,6 +22,8 @@ import {
   Hash,
 } from 'lucide-react';
 import { useLayout } from '../../../../../lib/useLayout';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
+import { WorkspacePanelHeader } from '../WorkspacePanelHeader';
 import { StoryOutline }   from './components/StoryOutline';
 import { ScriptBlockItem } from './components/ScriptBlock';
 import { ClaimInspector } from './components/ClaimInspector';
@@ -44,30 +46,9 @@ const MOBILE_TABS: Array<{ id: MobileTab; label: string; icon: React.ReactNode }
   { id: 'inspector', label: 'Inspector',icon: <FileSearch className="w-4 h-4" /> },
 ];
 
-// ─── Panel header ─────────────────────────────────────────────────────────────
-
-const PanelHeader: React.FC<{
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-  color: string;
-  actions?: React.ReactNode;
-}> = ({ icon, title, subtitle, color, actions }) => (
-  <div className="flex-shrink-0 flex items-center gap-3 px-4 py-2.5
-    border-b border-white/[0.06] bg-[#0B0B12]/60 backdrop-blur-sm">
-    <div
-      className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
-      style={{ background: color + '20', border: `1px solid ${color}30`, color }}
-    >
-      {icon}
-    </div>
-    <div className="flex-1 min-w-0">
-      <h2 className="font-display font-semibold text-[13px] text-white leading-tight">{title}</h2>
-      {subtitle && <p className="text-[10px] font-mono text-slate-600 truncate">{subtitle}</p>}
-    </div>
-    {actions}
-  </div>
-);
+// ScriptRoomPage uses WorkspacePanelHeader from the shared module.
+// PanelHeader alias kept for minimal diff in JSX below.
+const PanelHeader = WorkspacePanelHeader;
 
 // ─── Tab row ──────────────────────────────────────────────────────────────────
 
@@ -109,10 +90,11 @@ const ScriptBlockList: React.FC<{
   selectedBlockId: string | null;
   onSelectBlock: (id: string) => void;
   filterSectionId: string | null;
-}> = ({ blocks, selectedBlockId, onSelectBlock, filterSectionId }) => {
-  const filtered = filterSectionId
-    ? blocks.filter(b => b.sectionId === filterSectionId)
-    : blocks;
+}> = React.memo(({ blocks, selectedBlockId, onSelectBlock, filterSectionId }) => {
+  const filtered = React.useMemo(
+    () => filterSectionId ? blocks.filter(b => b.sectionId === filterSectionId) : blocks,
+    [blocks, filterSectionId],
+  );
 
   return (
     <div className="space-y-2.5">
@@ -138,7 +120,8 @@ const ScriptBlockList: React.FC<{
       </button>
     </div>
   );
-};
+});
+ScriptBlockList.displayName = 'ScriptBlockList';
 
 // ─── Meta strip ───────────────────────────────────────────────────────────────
 
@@ -360,6 +343,24 @@ export const ScriptRoomPage: React.FC<ScriptRoomPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── Workflow context bar ── */}
+      <WorkflowContextBar
+        stage="Script & Story Room"
+        stageColor="#8B5CF6"
+        responsible={{ name: 'Maria Reyes', initials: 'MR', color: '#10B981' }}
+        completion={data.meta.completionPercent}
+        blockedCount={data.sections.filter(s => s.status === 'needs-revision').length}
+        aiActive={autosaveState === 'saving' || autosaveState === 'saved'}
+        aiAgentName="ScriptGenius"
+        decisionsLogged={data.versions.length}
+        sourcesVerified={Object.values(data.linkedSources).filter(s => s.verificationStatus === 'verified').length}
+        sourcesTotal={Object.values(data.linkedSources).length}
+        scenesMapped={data.sections.filter(s => s.linkedSourceIds.length > 0).length}
+        scenesTotal={data.meta.totalScenes}
+        approvalsApproved={data.meta.approvedBlocks}
+        approvalsTotal={data.meta.totalBlocks}
+      />
 
       {/* ── MOBILE TABS ── */}
       <div className="lg:hidden flex-shrink-0 px-4 pt-3">

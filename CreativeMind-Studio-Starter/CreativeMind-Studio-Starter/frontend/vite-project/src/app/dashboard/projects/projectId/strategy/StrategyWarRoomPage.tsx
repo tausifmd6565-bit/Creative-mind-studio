@@ -30,6 +30,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useLayout } from '../../../../../lib/useLayout';
+import { WorkflowContextBar } from '../../../../../components/shared/WorkflowContextBar';
 import { AgentCard } from './components/AgentCard';
 import { DebateTimeline } from './components/DebateTimeline';
 import { ConsensusMeter } from './components/ConsensusMeter';
@@ -444,6 +445,26 @@ export const StrategyWarRoomPage: React.FC<StrategyWarRoomPageProps> = ({
           ))}
         </div>
       </div>
+
+      {/* ── Workflow context bar ── */}
+      <WorkflowContextBar
+        stage="Strategy War Room"
+        stageColor="#8B5CF6"
+        responsible={{ name: 'Sara Khalid', initials: 'SK', color: '#8B5CF6' }}
+        completion={MOCK_WAR_ROOM.debate.runState === 'complete' ? 100 : Math.round(consensus)}
+        blockedCount={MOCK_WAR_ROOM.decision.risks.filter(r => r.level === 'high').length}
+        aiActive={runState === 'running'}
+        aiAgentName={`${MOCK_WAR_ROOM.agents.filter(a => a.status === 'thinking' || a.status === 'responding').length > 0
+          ? `${MOCK_WAR_ROOM.agents.filter(a => a.status === 'thinking' || a.status === 'responding').length} agents active`
+          : 'Board ready'}`}
+        decisionsLogged={MOCK_WAR_ROOM.ledger.length}
+        sourcesVerified={MOCK_WAR_ROOM.scorecards.filter(sc => sc.score >= 70).length}
+        sourcesTotal={MOCK_WAR_ROOM.scorecards.length}
+        scenesMapped={MOCK_WAR_ROOM.ledger.filter(e => e.finalImpact === 'positive').length}
+        scenesTotal={MOCK_WAR_ROOM.ledger.length}
+        approvalsApproved={MOCK_WAR_ROOM.decision.status === 'accepted' ? 1 : 0}
+        approvalsTotal={1}
+      />
 
       {/* ── Desktop three-column body ── */}
       <div className="flex-1 hidden xl:grid grid-cols-[320px_1fr_320px] 2xl:grid-cols-[360px_1fr_360px] gap-0 overflow-hidden">
