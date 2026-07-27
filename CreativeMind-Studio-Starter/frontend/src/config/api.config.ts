@@ -2,34 +2,33 @@
  * config/api.config.ts
  *
  * Centralised API runtime configuration.
- *
- * All values are read once at module load from import.meta.env so every
- * service and the client use a single consistent source of truth.
- *
- * IMPORTANT: Never reference import.meta.env directly outside this file.
+ * Automatically targets live Render backend in production if VITE_API_BASE_URL is not set.
  */
 
-function requireEnv(key: string, fallback?: string): string {
-  const value = (import.meta.env as Record<string, string | undefined>)[key];
-  if (value !== undefined && value !== '') return value;
-  if (fallback !== undefined) return fallback;
-  throw new Error(`[api.config] Required environment variable "${key}" is not set.`);
+function getBaseUrl(): string {
+  const envUrl = (import.meta.env as Record<string, string | undefined>)['VITE_API_BASE_URL'];
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl.trim();
+  }
+  // If running in browser on Vercel / non-localhost domain, default directly to live Render backend
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://creative-mind-studio.onrender.com/api';
+  }
+  return 'http://localhost:8000/api';
 }
 
-// ─── Resolved config object ───────────────────────────────────────────────────
-
 export const API_CONFIG = {
-  /** Base URL, e.g. http://localhost:8000/api/v1 */
-  baseUrl: requireEnv('VITE_API_BASE_URL', 'http://localhost:8000/api'),
+  /** Base URL, e.g. https://creative-mind-studio.onrender.com/api */
+  baseUrl: getBaseUrl(),
 
   /** When true, all services swap to their in-memory mock adapters */
-  useMock: requireEnv('VITE_USE_MOCK_API', 'false') === 'true',
+  useMock: (import.meta.env as Record<string, string | undefined>)['VITE_USE_MOCK_API'] === 'true',
 
-  /** Request timeout in milliseconds — increased to 180s for multi-agent IBM Granite generation */
-  timeoutMs: Number(requireEnv('VITE_API_TIMEOUT_MS', '180000')),
+  /** Request timeout in milliseconds — 180s for multi-agent IBM Granite generation */
+  timeoutMs: 180000,
 
-  /** Maximum GET retry attempts (on 5xx or network error) */
-  maxRetries: Number(requireEnv('VITE_API_MAX_RETRIES', '3')),
+  /** Maximum GET retry attempts */
+  maxRetries: 3,
 
   /** Default headers sent with every request */
   defaultHeaders: {
