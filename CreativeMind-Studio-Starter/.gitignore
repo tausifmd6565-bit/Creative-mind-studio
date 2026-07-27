@@ -1,0 +1,47 @@
+# ==============================================================================
+# CreativeMind Studio — Root .gitignore
+# ==============================================================================
+
+# Environment files & secrets (NEVER COMMIT API KEYS)
+.env
+.env.*
+!.env.example
+
+# Python / Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+.pytest_cache/
+
+# Node / Frontend Build Outputs
+node_modules/
+dist/
+dist-ssr/
+build/
+.next/
+*.log
+
+# Database & SQLite files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE / OS junk
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

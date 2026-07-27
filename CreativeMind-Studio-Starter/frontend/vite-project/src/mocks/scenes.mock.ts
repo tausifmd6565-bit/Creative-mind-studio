@@ -1,0 +1,145 @@
+/**
+ * mocks/scenes.mock.ts
+ *
+ * Scene data for "The Last Human Translator".
+ *
+ * Visual scenes linked to script sections with asset and source counts.
+ */
+
+import type { Scene, SceneAsset } from '../types';
+import { PROJECT_ID } from './project.mock';
+
+// ─── Scenes ───────────────────────────────────────────────────────────────────
+
+export const MOCK_SCENES: Scene[] = [
+  {
+    id: 'scene-001',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-001',
+    sceneNumber: 1,
+    title: 'Cairo Pre-Dawn — Close on Hands',
+    description: 'Extreme close-up of Layla\'s hands typing. Mechanical keyboard. Dark room. Cairo street noise bleeding in through the window. Duration approximately 12 seconds.',
+    estimatedDurationSec: 12,
+    approvalStatus: 'approved',
+    linkedAssetCount: 2,
+    linkedSourceCount: 0,
+    thumbnailGradient: 'from-slate-900 to-violet-950',
+    createdAt: '2024-05-29T09:00:00Z',
+    updatedAt: '2024-06-05T17:00:00Z',
+  },
+  {
+    id: 'scene-002',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-001',
+    sceneNumber: 2,
+    title: 'Translation Interface — Cold Glow',
+    description: 'Cut to the cold white glow of an AI translation interface. Text appears in Arabic and immediately auto-translates. Speed vs thoughtfulness. 8 seconds.',
+    estimatedDurationSec: 8,
+    approvalStatus: 'approved',
+    linkedAssetCount: 1,
+    linkedSourceCount: 0,
+    thumbnailGradient: 'from-blue-900 to-cyan-950',
+    createdAt: '2024-05-29T09:10:00Z',
+    updatedAt: '2024-06-05T17:00:00Z',
+  },
+  {
+    id: 'scene-003',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-002',
+    sceneNumber: 3,
+    title: 'Layla — Morning Routine',
+    description: 'Layla prepares coffee in her apartment. Wide shot establishing her domestic space — books, handwritten notes, a framed Arabic calligraphy piece. This scene establishes warmth and humanity.',
+    estimatedDurationSec: 45,
+    approvalStatus: 'approved',
+    linkedAssetCount: 3,
+    linkedSourceCount: 0,
+    thumbnailGradient: 'from-amber-800 to-orange-950',
+    createdAt: '2024-05-29T10:00:00Z',
+    updatedAt: '2024-06-05T17:30:00Z',
+  },
+  {
+    id: 'scene-004',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-003',
+    sceneNumber: 7,
+    title: 'The Lost Client — Email Notification',
+    description: 'Layla reads an email. Her face changes. We read over her shoulder: "We have transitioned to an AI translation platform effective immediately." CU on her face.',
+    estimatedDurationSec: 35,
+    approvalStatus: 'approved',
+    linkedAssetCount: 0,
+    linkedSourceCount: 0,
+    thumbnailGradient: 'from-red-900 to-rose-950',
+    createdAt: '2024-05-30T09:00:00Z',
+    updatedAt: '2024-06-06T15:00:00Z',
+  },
+  {
+    id: 'scene-005',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-003',
+    sceneNumber: 8,
+    title: 'AI Tool Montage',
+    description: 'A fast montage of AI translation interface UIs — Google Translate, DeepL, GPT-based tools. Speed, precision, cost savings displayed as animated text. Contrast with the thoughtful previous scene.',
+    estimatedDurationSec: 30,
+    approvalStatus: 'approved',
+    linkedAssetCount: 4,
+    linkedSourceCount: 0,
+    thumbnailGradient: 'from-cyan-800 to-blue-950',
+    createdAt: '2024-05-30T09:30:00Z',
+    updatedAt: '2024-06-06T15:30:00Z',
+  },
+  {
+    id: 'scene-006',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-004',
+    sceneNumber: 11,
+    title: 'The Idiom Test — Live Demonstration',
+    description: 'Layla translates the Arabic idiom "على قدر أهل العزم تأتي العزائم" into English in real time. The AI translation appears alongside. The AI\'s output is clinical and literal. Hers is poetic and accurate.',
+    estimatedDurationSec: 90,
+    approvalStatus: 'approved',
+    linkedAssetCount: 1,
+    linkedSourceCount: 2,
+    thumbnailGradient: 'from-violet-800 to-purple-950',
+    createdAt: '2024-05-31T09:00:00Z',
+    updatedAt: '2024-06-07T16:00:00Z',
+  },
+  {
+    id: 'scene-007',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-006',
+    sceneNumber: 22,
+    title: 'The Poem — Final Translation',
+    description: 'Layla translates the 1930 Arabic poem by Ibrahim Naji. The AI version appears on screen. We hold on both outputs for 8 seconds. She reads hers aloud. The difference is unmistakable.',
+    estimatedDurationSec: 120,
+    approvalStatus: 'approved',
+    linkedAssetCount: 1,
+    linkedSourceCount: 1,
+    thumbnailGradient: 'from-indigo-800 to-violet-950',
+    createdAt: '2024-06-02T09:00:00Z',
+    updatedAt: '2024-06-09T16:00:00Z',
+  },
+  {
+    id: 'scene-008',
+    projectId: PROJECT_ID,
+    sectionId: 'sec-002',
+    sceneNumber: 4,
+    title: 'Cairo Street — Establishing B-Roll',
+    description: 'Wide establishing shot of a Cairo street market at dawn. Arabic signage fills the frame. This grounds the viewer in the cultural context before Layla speaks.',
+    estimatedDurationSec: 20,
+    approvalStatus: 'needs-revision',
+    linkedAssetCount: 2,
+    linkedSourceCount: 0,
+    thumbnailGradient: 'from-yellow-800 to-amber-950',
+    createdAt: '2024-05-29T11:00:00Z',
+    updatedAt: '2024-06-13T14:00:00Z',
+  },
+];
+
+// ─── Scene–asset links ────────────────────────────────────────────────────────
+
+export const MOCK_SCENE_ASSETS: SceneAsset[] = [
+  { sceneId: 'scene-001', assetId: 'ast-001', order: 1, notes: 'Primary establishing shot' },
+  { sceneId: 'scene-001', assetId: 'ast-002', order: 2, notes: 'Close-up B-roll' },
+  { sceneId: 'scene-003', assetId: 'ast-005', order: 1 },
+  { sceneId: 'scene-005', assetId: 'ast-006', order: 1 },
+  { sceneId: 'scene-007', assetId: 'ast-009', order: 1, inPoint: 0, outPoint: 120 },
+];

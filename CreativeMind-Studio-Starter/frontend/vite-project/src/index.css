@@ -1,0 +1,437 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* === DESIGN TOKENS === */
+
+  /* Backgrounds */
+  --color-bg-base:    #0F1115;
+  --color-bg-deep:    #0A0D12;
+  --color-bg-surface: #141820;
+
+  /* Surfaces */
+  --color-surface-1: #1A1D24;
+  --color-surface-2: #22262E;
+
+  /* Primary brand — IBM-inspired single accent */
+  --color-primary-700: #0043CE;
+  --color-primary-500: #0F62FE;
+  --color-primary-400: #4589FF;
+
+  /* Secondary */
+  --color-secondary-indigo: #8A3FFC;
+  --color-secondary-blue:   #3B82F6;
+
+  /* Semantic */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger:  #EF4444;
+
+  /* Text — tighter hierarchy for premium feel */
+  --color-text-primary:   #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted:     #475569;
+
+  /* Legacy aliases (keep existing components working) */
+  --color-brand-bg:       #0A0D12;
+  --color-brand-card:     rgba(26, 29, 36, 0.7);
+  --color-brand-purple:   #0F62FE;
+  --color-brand-electric: #4589FF;
+  --color-brand-violet:   #0043CE;
+  --color-brand-glow:     rgba(15, 98, 254, 0.15);
+
+  /* Shadows — more refined, less glow */
+  --shadow-glass:        0 4px 24px 0 rgba(0, 0, 0, 0.45);
+  --shadow-card:         0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-glow-purple:  0 0 20px rgba(15, 98, 254, 0.18);
+  --shadow-glow-cyan:    0 0 20px rgba(6, 182, 212, 0.15);
+  --shadow-sidebar:      4px 0 20px rgba(0, 0, 0, 0.35);
+
+  /* Border radii — consistent rounding */
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
+
+  /* Spacing scale additions */
+  --space-section: 2rem;
+  --space-panel:   1.5rem;
+}
+
+/* ── Micro-interaction timing tokens ── */
+@theme {
+  --duration-instant:  80ms;
+  --duration-fast:    150ms;
+  --duration-normal:  200ms;
+  --duration-slow:    300ms;
+  --ease-snappy: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-gentle: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    height: 100%;
+    /* Better text rendering on high-DPI screens */
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    height: 100%;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* ── Heading defaults — tighter tracking for premium feel ── */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  /* ── Paragraph spacing ── */
+  p {
+    line-height: 1.65;
+  }
+
+  /* ── Code / monospace defaults ── */
+  code, kbd, pre, samp {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+
+  /* ── prefers-reduced-motion — disable CSS transitions globally ── */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ── Scrollbar — thin, minimal ── */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* ── Focus visible — crisp ring ── */
+  :focus-visible {
+    outline: 1.5px solid var(--color-primary-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ── Selection ── */
+  ::selection {
+    background: rgba(15, 98, 254, 0.25);
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  /* ── Gradient text — primary accent ── */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #0F62FE, #4589FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Borders ── */
+  .border-subtle {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+  .border-subtle-md {
+    border-color: rgba(255, 255, 255, 0.09);
+  }
+
+  /* ── Surface / glass ── */
+  .glass-surface {
+    background: rgba(26, 29, 36, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .glass-surface-sm {
+    background: rgba(20, 24, 32, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* ── Card — IBM-minimal ── */
+  .card {
+    background: var(--color-surface-1);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-md);
+  }
+  .card-hover {
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+  .card-hover:hover {
+    border-color: rgba(15, 98, 254, 0.25);
+    background: var(--color-surface-2);
+  }
+
+  /* ── Section spacing ── */
+  .section-gap {
+    gap: var(--space-section);
+  }
+  .panel-padding {
+    padding: var(--space-panel);
+  }
+
+  /* ── Typography helpers ── */
+  .text-label {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+  .text-body-sm {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+  .text-heading-sm {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--color-text-primary);
+  }
+
+  /* ── Button base — eliminates most inline btn boilerplate ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: opacity 150ms ease, background-color 150ms ease, border-color 150ms ease;
+    user-select: none;
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .btn-primary {
+    background: var(--color-primary-700);
+    border-color: rgba(15, 98, 254, 0.35);
+    color: #fff;
+    padding: 8px 16px;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-500);
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.09);
+    color: var(--color-text-secondary);
+    padding: 6px 12px;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+  }
+  .btn-sm {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Status badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    border: 1px solid;
+  }
+  .badge-success {
+    color: #10B981;
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+  .badge-warning {
+    color: #F59E0B;
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+  .badge-danger {
+    color: #EF4444;
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+  .badge-neutral {
+    color: var(--color-text-muted);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* ── Empty state — used across all workspace tabs ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    gap: 1rem;
+    min-height: 240px;
+  }
+  .empty-state-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: rgba(15, 98, 254, 0.08);
+    border: 1px solid rgba(15, 98, 254, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(15, 98, 254, 0.6);
+  }
+  .empty-state-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -0.015em;
+  }
+  .empty-state-description {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+    max-width: 320px;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 0;
+    border: none;
+  }
+
+  /* ── Loading skeleton ── */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    border-radius: var(--radius-sm);
+  }
+  @keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Tab bar — workspace ── */
+  .workspace-tabs {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0 1.5rem;
+    background: var(--color-bg-deep);
+  }
+  .workspace-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+    transition: color 150ms ease, border-color 150ms ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .workspace-tab:hover {
+    color: var(--color-text-secondary);
+  }
+  .workspace-tab.active {
+    color: var(--color-primary-400);
+    border-bottom-color: var(--color-primary-500);
+  }
+  .workspace-tab.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ── Panel header ── */
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(11, 11, 18, 0.5);
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -0.01em;
+  }
+  .panel-subtitle {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    margin-top: 1px;
+  }
+}
