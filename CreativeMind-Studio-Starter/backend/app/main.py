@@ -1,42 +1,45 @@
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-
-
 from sqlalchemy import text
 from app.db.client import engine
 from app.db.models import Base
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup / shutdown lifecycle hook."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        # Ensure any missing columns exist on PostgreSQL/SQLite tables
-        alter_statements = [
-            "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS questions JSON;",
-            "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS facts JSON;",
-            "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS sources JSON;",
-            "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS confidence_score FLOAT;",
-            "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS narrative TEXT;",
-            "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS script TEXT;",
-            "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS scenes JSON;",
-            "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS broll JSON;",
-            "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS editing_notes TEXT;",
-            "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS platform_adaptations JSON;",
-            "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS production_timeline JSON;",
-        ]
-        for stmt in alter_statements:
-            try:
-                await conn.execute(text(stmt))
-            except Exception:
-                pass
+    """Startup / shutdown lifecycle hook with graceful exception handling."""
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+            alter_statements = [
+                "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS questions JSON;",
+                "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS facts JSON;",
+                "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS sources JSON;",
+                "ALTER TABLE research_packs ADD COLUMN IF NOT EXISTS confidence_score FLOAT;",
+                "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS narrative TEXT;",
+                "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS script TEXT;",
+                "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS scenes JSON;",
+                "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS broll JSON;",
+                "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS editing_notes TEXT;",
+                "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS platform_adaptations JSON;",
+                "ALTER TABLE creative_blueprints ADD COLUMN IF NOT EXISTS production_timeline JSON;",
+            ]
+            for stmt in alter_statements:
+                try:
+                    await conn.execute(text(stmt))
+                except Exception:
+                    pass
+    except Exception as e:
+        logger.warning("Lifespan DB setup warning (continuing startup): %s", e)
     yield
 
 
