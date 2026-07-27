@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # ── AI Provider selection ─────────────────────────────────────────────────
     # Options: "groq" | "openai" | "grok" | "replicate" | "watsonx"
-    AI_PROVIDER: str = "watsonx"
+    AI_PROVIDER: str = "groq"
 
     # ── Groq  (FREE — https://console.groq.com) ───────────────────────────────
     GROQ_API_KEY: str = ""
@@ -52,10 +52,10 @@ class Settings(BaseSettings):
     DATABASE_URL_SYNC: str = "sqlite:///./dev.db"
 
     # ── Application ───────────────────────────────────────────────────────────
-    APP_ENV: str = "development"
+    APP_ENV: str = "production"
     DEBUG: bool = False
     APP_VERSION: str = "0.1.0"
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "*"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
@@ -66,11 +66,9 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> list[str]:
+        if self.CORS_ORIGINS.strip() == "*":
+            return ["*"]
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
-
-    @property
-    def is_development(self) -> bool:
-        return self.APP_ENV == "development"
 
 
 settings = Settings()
