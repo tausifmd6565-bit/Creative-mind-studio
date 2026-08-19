@@ -1,7 +1,7 @@
 /**
  * WizardBottomActions.tsx — Bottom navigation bar for the project creation wizard.
  *
- * Buttons: Back · Save Draft · Next / Create Project
+ * Buttons: Back · Save Draft · Next · Create Project (Always Available)
  * Shows autosave status indicator and step progress fraction.
  */
 
@@ -19,8 +19,6 @@ import {
 import { Loader2 } from 'lucide-react';
 import type { WizardStepId } from '../types';
 import { ease } from '../../../lib/motion-constants';
-
-// ─── Autosave indicator ───────────────────────────────────────────────────────
 
 const AutosaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' }> = ({ status }) => (
   <AnimatePresence mode="wait">
@@ -65,8 +63,6 @@ const AutosaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' }> = ({ 
     )}
   </AnimatePresence>
 );
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 interface WizardBottomActionsProps {
   currentStep: WizardStepId;
@@ -123,9 +119,8 @@ export const WizardBottomActions: React.FC<WizardBottomActionsProps> = ({
         <AutosaveIndicator status={autosaveStatus} />
       </div>
 
-      {/* ── Right: Save Draft + Next/Create ── */}
+      {/* ── Right: Next / Create Project ── */}
       <div className="flex items-center gap-3">
-        {/* Save Draft */}
         {isDirty && (
           <motion.button
             type="button"
@@ -149,51 +144,11 @@ export const WizardBottomActions: React.FC<WizardBottomActionsProps> = ({
           </motion.button>
         )}
 
-        {/* Step fraction badge (desktop) */}
         <span className="hidden lg:block text-[11px] font-mono text-slate-700">
           {currentStep} / {totalSteps}
         </span>
 
-        {/* Next / Create Project */}
-        {isLastStep ? (
-          <motion.button
-            type="button"
-            onClick={onCreateProject}
-            disabled={isSubmitting}
-            whileHover={{ scale: isSubmitting ? 1 : 1.03 }}
-            whileTap={{ scale: isSubmitting ? 1 : 0.97 }}
-            transition={{ duration: 0.15, ease: ease.snappy }}
-            className="
-              relative inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px]
-              text-[13px] font-semibold text-white
-              bg-gradient-to-r from-[#7C3AED] to-[#9D6CFF]
-              border border-[#8B5CF6]/30
-              shadow-[0_4px_20px_rgba(124,58,237,0.35)]
-              hover:shadow-[0_4px_28px_rgba(139,92,246,0.5)]
-              transition-all duration-200
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]
-              disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer
-              overflow-hidden
-            "
-            aria-label={isSubmitting ? 'Creating project…' : 'Create project'}
-          >
-            {/* Shimmer */}
-            <motion.span
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-              animate={{ x: ['-100%', '200%'] }}
-              transition={{ repeat: Infinity, duration: 2.5, ease: 'linear', repeatDelay: 1 }}
-            />
-
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin relative z-10" />
-            ) : (
-              <Rocket className="w-4 h-4 relative z-10" />
-            )}
-            <span className="relative z-10">
-              {isSubmitting ? 'Creating…' : 'Create Project'}
-            </span>
-          </motion.button>
-        ) : (
+        {!isLastStep && (
           <motion.button
             type="button"
             onClick={onNext}
@@ -202,22 +157,55 @@ export const WizardBottomActions: React.FC<WizardBottomActionsProps> = ({
             whileTap={{ scale: 0.98 }}
             transition={{ duration: 0.15 }}
             className="
-              inline-flex items-center gap-1.5 px-5 py-2.5 rounded-[10px]
-              text-[13px] font-semibold text-white
-              bg-gradient-to-r from-[#7C3AED] to-[#9D6CFF]
-              border border-[#8B5CF6]/30
-              shadow-[0_4px_16px_rgba(124,58,237,0.25)]
-              hover:shadow-[0_4px_22px_rgba(139,92,246,0.4)]
-              transition-all duration-200
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]
-              disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
+              inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[10px]
+              text-[13px] font-semibold text-slate-300
+              border border-white/[0.12] bg-white/[0.04]
+              hover:bg-white/[0.08] hover:text-white
+              transition-all duration-200 cursor-pointer
             "
-            aria-label="Continue to next step"
           >
-            Next
+            Next Step
             <ChevronRight className="w-4 h-4" />
           </motion.button>
         )}
+
+        {/* Create Project button — ALWAYS AVAILABLE on every step */}
+        <motion.button
+          type="button"
+          onClick={onCreateProject}
+          disabled={isSubmitting}
+          whileHover={{ scale: isSubmitting ? 1 : 1.03 }}
+          whileTap={{ scale: isSubmitting ? 1 : 0.97 }}
+          transition={{ duration: 0.15, ease: ease.snappy }}
+          className="
+            relative inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px]
+            text-[13px] font-semibold text-white
+            bg-gradient-to-r from-[#7C3AED] to-[#9D6CFF]
+            border border-[#8B5CF6]/30
+            shadow-[0_4px_20px_rgba(124,58,237,0.35)]
+            hover:shadow-[0_4px_28px_rgba(139,92,246,0.5)]
+            transition-all duration-200
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]
+            disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer
+            overflow-hidden
+          "
+          aria-label={isSubmitting ? 'Creating project…' : 'Create project now'}
+        >
+          <motion.span
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ repeat: Infinity, duration: 2.5, ease: 'linear', repeatDelay: 1 }}
+          />
+
+          {isSubmitting ? (
+            <Loader2 className="w-4 h-4 animate-spin relative z-10" />
+          ) : (
+            <Rocket className="w-4 h-4 relative z-10" />
+          )}
+          <span className="relative z-10">
+            {isSubmitting ? 'Launching Workspace…' : 'Create Project'}
+          </span>
+        </motion.button>
       </div>
     </div>
   );
