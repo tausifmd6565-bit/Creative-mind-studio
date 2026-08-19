@@ -30,17 +30,17 @@ import type { ContentType, Platform } from '../../types';
 const DEFAULT_STEP1: Step1Data = {
   projectTitle: '',
   description: '',
-  contentCategory: '',
-  targetPlatform: '',
-  targetAudience: '',
-  primaryGoal: '',
+  contentCategory: 'youtube',
+  targetPlatform: 'youtube',
+  targetAudience: 'General audience',
+  primaryGoal: 'education',
 };
 
 const DEFAULT_STEP2: Step2Data = {
   rawIdea: '',
-  desiredDuration: '',
-  tone: '',
-  language: '',
+  desiredDuration: '3-10min',
+  tone: 'professional',
+  language: 'english',
   deadline: '',
 };
 
@@ -51,7 +51,7 @@ const DEFAULT_STEP3: Step3Data = {
 };
 
 const DEFAULT_STEP4: Step4Data = {
-  selectedStartOption: null,
+  selectedStartOption: 'strategy',
 };
 
 const DEFAULT_WIZARD_DATA: ProjectWizardData = {
@@ -66,30 +66,21 @@ const DEFAULT_WIZARD_DATA: ProjectWizardData = {
 function validateStep1(data: Step1Data): ValidationErrors {
   const errors: ValidationErrors = {};
   if (!data.projectTitle.trim()) errors.projectTitle = 'Project title is required';
-  else if (data.projectTitle.trim().length < 3) errors.projectTitle = 'Title must be at least 3 characters';
-  if (!data.contentCategory) errors.contentCategory = 'Please select a content category';
-  if (!data.targetPlatform) errors.targetPlatform = 'Please select a target platform';
   return errors;
 }
 
 function validateStep2(data: Step2Data): ValidationErrors {
   const errors: ValidationErrors = {};
   if (!data.rawIdea.trim()) errors.rawIdea = 'Please describe your idea';
-  else if (data.rawIdea.trim().length < 10) errors.rawIdea = 'Please provide more detail (10+ characters)';
-  if (!data.tone) errors.tone = 'Please select a tone';
-  if (!data.language) errors.language = 'Please select a language';
   return errors;
 }
 
 function validateStep3(): ValidationErrors {
-  // Step 3 is optional — no required fields
   return {};
 }
 
-function validateStep4(data: Step4Data): ValidationErrors {
-  const errors: ValidationErrors = {};
-  if (!data.selectedStartOption) errors.selectedStartOption = 'Please choose how to start your project';
-  return errors;
+function validateStep4(_data: Step4Data): ValidationErrors {
+  return {};
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -154,127 +145,137 @@ export function useProjectWizard(
     step4: { ...DEFAULT_STEP4, ...initialData?.step4 },
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveTimerRef = useRef<number | null>(null);
 
-  // ── Autosave trigger ──────────────────────────────────────────────────────
+  const isDirty =
+    JSON.stringify(formData) !==
+    JSON.stringify({
+      step1: { ...DEFAULT_STEP1, ...initialData?.step1 },
+      step2: { ...DEFAULT_STEP2, ...initialData?.step2 },
+      step3: { ...DEFAULT_STEP3, ...initialData?.step3 },
+      step4: { ...DEFAULT_STEP4, ...initialData?.step4 },
+    });
 
   const triggerAutosave = useCallback(() => {
+    if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current);
     setAutosaveStatus('saving');
-    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-    autosaveTimer.current = setTimeout(() => {
-      // In production: persist to backend / localStorage
+    autosaveTimerRef.current = window.setTimeout(() => {
       setAutosaveStatus('saved');
-      setTimeout(() => setAutosaveStatus('idle'), 2000);
-    }, 1200);
+    }, 600);
   }, []);
 
-  // ── Generic field update ──────────────────────────────────────────────────
+  // ── Step update functions ─────────────────────────────────────────────────
 
-  const patchData = useCallback(<K extends keyof ProjectWizardData>(
-    key: K,
-    patch: Partial<ProjectWizardData[K]>
-  ) => {
-    setFormData(prev => ({ ...prev, [key]: { ...prev[key], ...patch } }));
-    setIsDirty(true);
-    // Clear related errors
-    setErrors(prev => {
-      const next = { ...prev };
-      Object.keys(patch).forEach(k => delete next[k]);
-      return next;
-    });
-    triggerAutosave();
-  }, [triggerAutosave]);
+  const updateStep1 = useCallback(
+    (patch: Partial<Step1Data>) => {
+      setFormData(prev => ({
+        ...prev,
+        step1: { ...prev.step1, ...patch },
+      }));
+      setErrors(prev => ({ ...prev, projectTitle: undefined, contentCategory: undefined, targetPlatform: undefined }));
+      triggerAutosave();
+    },
+    [triggerAutosave],
+  );
 
-  // ── Step 1 ────────────────────────────────────────────────────────────────
-
-  const updateStep1 = useCallback((patch: Partial<Step1Data>) => {
-    patchData('step1', patch);
-  }, [patchData]);
-
-  // ── Step 2 ────────────────────────────────────────────────────────────────
-
-  const updateStep2 = useCallback((patch: Partial<Step2Data>) => {
-    patchData('step2', patch);
-  }, [patchData]);
-
-  // ── Step 3 ────────────────────────────────────────────────────────────────
+  const updateStep2 = useCallback(
+    (patch: Partial<Step2Data>) => {
+      setFormData(prev => ({
+        ...prev,
+        step2: { ...prev.step2, ...patch },
+      }));
+      setErrors(prev => ({ ...prev, rawIdea: undefined, tone: undefined, language: undefined }));
+      triggerAutosave();
+    },
+    [triggerAutosave],
+  );
 
   const addTeamMember = useCallback((member: Omit<TeamMember, 'id'>) => {
-    const newMember: TeamMember = { ...member, id: `tm-${Date.now()}` };
     setFormData(prev => ({
       ...prev,
-      step3: { ...prev.step3, teamMembers: [...prev.step3.teamMembers, newMember] },
+      step3: {
+        ...prev.step3,
+        teamMembers: [...prev.step3.teamMembers, { ...member, id: `tm-${Date.now()}` }],
+      },
     }));
-    setIsDirty(true);
-    triggerAutosave();
-  }, [triggerAutosave]);
+  }, []);
 
   const removeTeamMember = useCallback((id: string) => {
     setFormData(prev => ({
       ...prev,
-      step3: { ...prev.step3, teamMembers: prev.step3.teamMembers.filter(m => m.id !== id) },
+      step3: {
+        ...prev.step3,
+        teamMembers: prev.step3.teamMembers.filter(m => m.id !== id),
+      },
     }));
-    setIsDirty(true);
-    triggerAutosave();
-  }, [triggerAutosave]);
+  }, []);
 
   const addReferenceLink = useCallback((link: Omit<ReferenceLink, 'id'>) => {
-    const newLink: ReferenceLink = { ...link, id: `rl-${Date.now()}` };
     setFormData(prev => ({
       ...prev,
-      step3: { ...prev.step3, referenceLinks: [...prev.step3.referenceLinks, newLink] },
+      step3: {
+        ...prev.step3,
+        referenceLinks: [...prev.step3.referenceLinks, { ...link, id: `ref-${Date.now()}` }],
+      },
     }));
-    setIsDirty(true);
-    triggerAutosave();
-  }, [triggerAutosave]);
+  }, []);
 
   const removeReferenceLink = useCallback((id: string) => {
     setFormData(prev => ({
       ...prev,
-      step3: { ...prev.step3, referenceLinks: prev.step3.referenceLinks.filter(l => l.id !== id) },
+      step3: {
+        ...prev.step3,
+        referenceLinks: prev.step3.referenceLinks.filter(l => l.id !== id),
+      },
     }));
-    setIsDirty(true);
-    triggerAutosave();
-  }, [triggerAutosave]);
+  }, []);
 
   const addUploadedFile = useCallback((file: Omit<UploadedFile, 'id' | 'uploadedAt'>) => {
-    const newFile: UploadedFile = { ...file, id: `uf-${Date.now()}`, uploadedAt: new Date() };
     setFormData(prev => ({
       ...prev,
-      step3: { ...prev.step3, uploadedFiles: [...prev.step3.uploadedFiles, newFile] },
+      step3: {
+        ...prev.step3,
+        uploadedFiles: [
+          ...prev.step3.uploadedFiles,
+          { ...file, id: `file-${Date.now()}`, uploadedAt: 'Just now' },
+        ],
+      },
     }));
-    setIsDirty(true);
-    triggerAutosave();
-  }, [triggerAutosave]);
+  }, []);
 
   const removeUploadedFile = useCallback((id: string) => {
     setFormData(prev => ({
       ...prev,
-      step3: { ...prev.step3, uploadedFiles: prev.step3.uploadedFiles.filter(f => f.id !== id) },
+      step3: {
+        ...prev.step3,
+        uploadedFiles: prev.step3.uploadedFiles.filter(f => f.id !== id),
+      },
     }));
-    setIsDirty(true);
-    triggerAutosave();
-  }, [triggerAutosave]);
+  }, []);
 
-  // ── Step 4 ────────────────────────────────────────────────────────────────
-
-  const updateStep4 = useCallback((patch: Partial<Step4Data>) => {
-    patchData('step4', patch);
-  }, [patchData]);
+  const updateStep4 = useCallback(
+    (patch: Partial<Step4Data>) => {
+      setFormData(prev => ({
+        ...prev,
+        step4: { ...prev.step4, ...patch },
+      }));
+      setErrors(prev => ({ ...prev, selectedStartOption: undefined }));
+      triggerAutosave();
+    },
+    [triggerAutosave],
+  );
 
   // ── Navigation ────────────────────────────────────────────────────────────
 
   const validateCurrentStep = useCallback((): boolean => {
     let errs: ValidationErrors = {};
-    switch (currentStep) {
-      case 1: errs = validateStep1(formData.step1); break;
-      case 2: errs = validateStep2(formData.step2); break;
-      case 3: errs = validateStep3(); break;
-      case 4: errs = validateStep4(formData.step4); break;
-    }
+    if (currentStep === 1) errs = validateStep1(formData.step1);
+    else if (currentStep === 2) errs = validateStep2(formData.step2);
+    else if (currentStep === 3) errs = validateStep3();
+    else if (currentStep === 4) errs = validateStep4(formData.step4);
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }, [currentStep, formData]);
@@ -306,17 +307,16 @@ export function useProjectWizard(
   }, [triggerAutosave]);
 
   const submitProject = useCallback(async () => {
-    if (!validateCurrentStep()) return;
     setIsSubmitting(true);
     try {
       const created = await projectService.create({
-        title: formData.step1.projectTitle,
-        description: formData.step1.description,
-        raw_idea: formData.step2.rawIdea,
+        title: formData.step1.projectTitle || 'New Creative Project',
+        description: formData.step1.description || 'Creative Video Series',
+        raw_idea: formData.step2.rawIdea || formData.step1.projectTitle || 'Exploring creative concept',
         contentType: mapContentType(formData.step1.contentCategory),
         primaryPlatform: mapPlatform(formData.step1.targetPlatform),
         targetPlatforms: [mapPlatform(formData.step1.targetPlatform)],
-        targetAudience: formData.step1.targetAudience,
+        targetAudience: formData.step1.targetAudience || 'General audience',
         primaryGoal: formData.step1.primaryGoal || 'education',
         tone: formData.step2.tone || 'professional',
         language: formData.step2.language || 'english',
@@ -328,14 +328,13 @@ export function useProjectWizard(
           formData.step4.selectedStartOption,
         ].filter(Boolean) as string[],
       });
-      // Pass the real project ID back to the parent so pages can call the backend
       onProjectCreated(created.id);
     } catch (err) {
       setErrors({ projectTitle: (err as Error).message ?? 'Failed to create project' });
     } finally {
       setIsSubmitting(false);
     }
-  }, [validateCurrentStep, formData, onProjectCreated]);
+  }, [formData, onProjectCreated]);
 
   return {
     currentStep,
