@@ -91,7 +91,6 @@ async function request<T>(
   const init: RequestInit = {
     method,
     headers,
-    credentials: 'same-origin',
     body: isFormData
       ? (body as FormData)
       : body !== undefined
